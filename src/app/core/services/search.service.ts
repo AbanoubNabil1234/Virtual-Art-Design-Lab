@@ -55,7 +55,7 @@ export class SearchService {
         }));
 
         // 4. Forum (Assuming sync for now or mock)
-        const topicResults = this.forumService.topics().filter(t =>
+        const topicResults = this.forumService.getTopics()().filter(t =>
             t.title.includes(q) || t.author.includes(q)
         ).map(t => ({
             title: t.title,
