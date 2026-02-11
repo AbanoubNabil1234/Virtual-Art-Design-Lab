@@ -62,8 +62,8 @@ import { ModuleService } from '../../../core/services/module.service';
       <!-- 9. Notepad -->
       <a routerLink="/notepad" class="sidebar-btn">المفكره (ملاحظات)</a>
       
-      <!-- 9. Question Bank (Calendar/Activities placeholder) -->
-      <a href="#" class="sidebar-btn">بنك الاسئلة (التقويم)</a>
+      <!-- 9. Question Bank -->
+      <a routerLink="/question-bank" class="sidebar-btn">بنك الاسئلة (التقويم)</a>
     </div>
   `,
   styles: [`

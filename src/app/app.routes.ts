@@ -72,5 +72,9 @@ export const routes: Routes = [
         path: 'notepad',
         loadComponent: () => import('./features/notepad/notepad.component').then(m => m.NotepadComponent)
     },
+    {
+        path: 'question-bank',
+        loadComponent: () => import('./features/question-bank/question-bank.component').then(m => m.QuestionBankComponent)
+    },
     { path: '**', redirectTo: '' }
 ];
