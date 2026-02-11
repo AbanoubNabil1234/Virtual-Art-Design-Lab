@@ -1,0 +1,141 @@
+<div class="exam-container">
+
+    <!-- STEP 1: INTRO / INSTRUCTIONS -->
+    <div *ngIf="step() === 'intro'" class="instruction-card">
+        <h2>اختبار(أ)</h2>
+        <h3>الجانب المعرفي في مهارات التصميم للطلاب المرحلة الثانوية</h3>
+
+        <div style="text-align: right; margin: 2rem 0; line-height: 1.8;">
+            <p style="font-weight: bold; margin-bottom: 5px;">هدف الاختبار:</p>
+            <p>يهدف الاختبار التحصيلي إلى قياس مدى تمكن طلاب المرحلة الثانوية من مفاهيم التصميم في مادة التربية الفنية،
+                وذلك في ضوء استخدام المعمل الافتراضي، والتعرّف على مستوى التحصيل المعرفي لديهم في موضوعات التصميم، بما
+                يسهم في تقويم فاعلية المعمل الافتراضي في تنمية هذه المفاهيم.</p>
+
+            <p style="font-weight: bold; margin-top: 1.5rem; margin-bottom: 5px;">تعليمات الاختبار التحصيلي:</p>
+            <p>عزيزي الطالب / عزيزتي الطالبة يرجى قراءة التعليمات التالية بعناية قبل البدء في الإجابة:</p>
+            <ul style="list-style: none; padding-right: 0;">
+                <li>1. يتكون هذا الاختبار من مجموعة من الأسئلة التي تقيس مفاهيم التصميم في مادة التربية الفنية.</li>
+                <li>2. يرجى قراءة الأسئلة بعناية، ثم اختيار الإجابة الصحيحة من بين البدائل الأربعة لكل سؤال، ووضع علامة
+                    (✓) أمام الحرف الدال على الإجابة الصحيحة في ورقة الإجابة.</li>
+                <li>3. لا تترك أي سؤال دون إجابة.</li>
+                <li>4. الإجابة تكون في المكان المخصص لها فقط.</li>
+            </ul>
+        </div>
+
+        <div style="margin-top: 2rem;">
+            <h3>مع تمنياتنا لك بالتوفيق</h3>
+            <div style="text-align: center; margin-top: 1rem;">
+                <p style="font-size: 1rem; color: #555; margin-bottom: 5px;">إعــداد الباحث</p>
+                <p style="font-weight: bold; font-size: 1.1rem;">أحمد عدنان ياسين</p>
+            </div>
+        </div>
+
+        <button class="btn-start" (click)="startExam()">ابدأ الاختبار</button>
+    </div>
+
+    <!-- STEP 2: EXAM QUESTIONS (A4 Table Layout) -->
+    <div *ngIf="step() === 'exam'">
+        <div class="instruction-card" style="margin-bottom: 20px; padding: 1rem;">
+            <h2 style="margin: 0;">أسئلة الاختبار: اختر الإجابة الصحيحة مما يلي:</h2>
+        </div>
+
+        <!-- A4 Container Look -->
+        <div style="
+            width: 100%;
+            max-width: 100%;
+            min-height: 297mm;
+            padding: 5mm;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            direction: rtl;
+            font-family: 'Noto Kufi Arabic', Arial, sans-serif;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            overflow-x: auto;
+        ">
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                <thead>
+                    <tr>
+                        <th
+                            style="border: 1px solid #444; background: #5d4037; color: white; padding: 8px; width: 40px; text-align: center;">
+                            م</th>
+                        <th
+                            style="border: 1px solid #444; background: #5d4037; color: white; padding: 8px; text-align: right;">
+                            السؤال والخيارات</th>
+                        <th
+                            style="border: 1px solid #444; background: #5d4037; color: white; padding: 8px; width: 80px; text-align: center;">
+                            الإجابة</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let q of visibleQuestions">
+                        <td
+                            style="border: 1px solid #444; padding: 8px; text-align: center; vertical-align: top; font-weight: bold;">
+                            {{q.id}}</td>
+
+                        <td style="border: 1px solid #444; padding: 10px; text-align: right; vertical-align: top;">
+                            <div style="font-weight: bold; margin-bottom: 12px; font-size: 1rem; color: #000;">
+                                {{q.text}}</div>
+                            <div *ngFor="let opt of q.options"
+                                style="margin-bottom: 6px; color: #333; padding-right: 10px;">
+                                {{opt}}
+                            </div>
+                        </td>
+
+                        <td style="border: 1px solid #444; padding: 8px; vertical-align: middle; text-align: center;">
+                            <div style="display: flex; flex-direction: column; gap: 12px; align-items: center;">
+                                <div *ngFor="let opt of q.options; let i = index"
+                                    style="cursor: pointer; font-size: 0.8rem; display: flex; align-items: center;">
+                                    <input type="radio" [name]="'q' + q.id" [value]="opt" [(ngModel)]="q.selectedOption"
+                                        style="width: 18px; height: 18px; cursor: pointer;">
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- Pagination Controls -->
+            <div
+                style="display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 2rem;">
+                <button [disabled]="currentPage() === 0" (click)="prevPage()"
+                    style="padding: 10px 20px; background: #555; color: white; border: none; border-radius: 4px; cursor: pointer; opacity: currentPage() === 0 ? 0.5 : 1;">
+                    السابق
+                </button>
+
+                <span style="font-weight: bold;">
+                    صفحة {{currentPage() + 1}} من {{totalPages}}
+                </span>
+
+                <button *ngIf="currentPage() < totalPages - 1" (click)="nextPage()"
+                    style="padding: 10px 20px; background: #6b4226; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                    التالي
+                </button>
+
+                <button *ngIf="currentPage() === totalPages - 1" (click)="submitExam()"
+                    style="padding: 10px 20px; background: #27ae60; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                    تسليم الإجابة
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- STEP 3: RESULT / SUBMISSION -->
+    <div *ngIf="step() === 'result'" class="instruction-card">
+        <span class="material-icons" style="font-size: 64px; color: #27ae60; margin-bottom: 1rem;">check_circle</span>
+        <h2>تم تسليم الاختبار بنجاح</h2>
+        <p>شكراً لك على إتمام الاختبار التحصيلي.</p>
+
+        <div class="score-display">
+            النتيجة: {{score()}} / {{totalQuestions()}}
+        </div>
+
+        <p>تم تسجيل إجاباتك.</p>
+
+        <button class="btn-start" (click)="step.set('intro')" style="margin-top: 2rem; background: #666;">عودة للصفحة
+            الرئيسية للاختبار</button>
+    </div>
+
+</div>

@@ -1,0 +1,95 @@
+<div class="judging-container">
+    <h2>استمارة تحكيم الاختبار التحصيلي (Judging Form)</h2>
+
+    <p style="text-align: right; margin-bottom: 1rem; color: #555;">
+        تعليمات المحكم: يرجى إبداء الرأي حول صياغة الأسئلة وانتمائها للبعد، واقتراح التعديلات إن وجدت.
+    </p>
+
+    <!-- Paginated Table -->
+    <!-- Paginated Table -->
+    <table class="judging-table" style="margin-top: 1rem;">
+        <thead>
+            <tr>
+                <th rowspan="2" style="width: 40px;">م</th>
+                <th rowspan="2" style="width: 45%;">أبعاد المقياس</th>
+                <th colspan="2">الصياغة اللغوية</th>
+                <th colspan="2">الانتماء للبعد</th>
+                <th rowspan="2" style="width: 15%;">التعديل المقترح</th>
+            </tr>
+            <tr>
+                <!-- Sub-headers for Linguistic -->
+                <th class="sub-th" style="background: #795548; width: 60px;">مناسبة</th>
+                <th class="sub-th" style="background: #795548; width: 60px;">غير سليمة</th>
+
+                <!-- Sub-headers for Belonging -->
+                <th class="sub-th" style="background: #795548; width: 60px;">منتمية</th>
+                <th class="sub-th" style="background: #795548; width: 60px;">غير منتمية</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr *ngFor="let q of visibleQuestions">
+                <td style="font-weight: bold;">{{q.id}}</td>
+
+                <!-- Question & Options Cell -->
+                <td class="q-cell">
+                    <span class="q-text">{{q.text}}</span>
+                    <div style="margin-top: 4px; padding-right: 10px;">
+                        <span *ngFor="let opt of q.options" class="q-option">{{opt}}</span>
+                    </div>
+                </td>
+
+                <!-- Linguistic Checkboxes (Radio behavior via name) -->
+                <td>
+                    <div style="display:flex; justify-content:center;">
+                        <input type="radio" [name]="'ling-'+q.id" value="مناسبة" [(ngModel)]="q.linguistic">
+                    </div>
+                </td>
+                <td>
+                    <div style="display:flex; justify-content:center;">
+                        <input type="radio" [name]="'ling-'+q.id" value="غير مناسبة" [(ngModel)]="q.linguistic">
+                    </div>
+                </td>
+
+                <!-- Belonging Checkboxes -->
+                <td>
+                    <div style="display:flex; justify-content:center;">
+                        <input type="radio" [name]="'bel-'+q.id" value="منتمية" [(ngModel)]="q.belonging">
+                    </div>
+                </td>
+                <td>
+                    <div style="display:flex; justify-content:center;">
+                        <input type="radio" [name]="'bel-'+q.id" value="غير منتمية" [(ngModel)]="q.belonging">
+                    </div>
+                </td>
+
+                <!-- Amendment Textarea -->
+                <td style="padding: 0;">
+                    <textarea [(ngModel)]="q.amendment"></textarea>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- Pagination Controls -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 2rem;">
+
+        <button [disabled]="currentPage() === 0" (click)="prevPage()"
+            style="padding: 10px 20px; background: #555; color: white; border: none; border-radius: 4px; cursor: pointer; opacity: currentPage() === 0 ? 0.5 : 1;">
+            الصفحة السابقة
+        </button>
+
+        <span style="font-weight: bold; font-size: 1.1rem;">
+            صفحة {{currentPage() + 1}} من {{totalPages}}
+        </span>
+
+        <button *ngIf="currentPage() < totalPages - 1" (click)="nextPage()"
+            style="padding: 10px 20px; background: #6b4226; color: white; border: none; border-radius: 4px; cursor: pointer;">
+            الصفحة التالية
+        </button>
+
+        <button *ngIf="currentPage() === totalPages - 1" (click)="saveEvaluation()"
+            style="padding: 10px 20px; background: #27ae60; color: white; border: none; border-radius: 4px; cursor: pointer;">
+            حفظ التقييم النهائي
+        </button>
+    </div>
+</div>
