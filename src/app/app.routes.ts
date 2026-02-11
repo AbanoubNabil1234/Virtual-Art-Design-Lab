@@ -60,5 +60,17 @@ export const routes: Routes = [
         path: 'lab',
         loadComponent: () => import('./features/lab/lab.component').then(m => m.LabComponent)
     },
+    {
+        path: 'forum',
+        loadComponent: () => import('./features/forum/forum.component').then(m => m.ForumComponent)
+    },
+    {
+        path: 'forum/:id',
+        loadComponent: () => import('./features/forum/forum-topic.component').then(m => m.ForumTopicComponent)
+    },
+    {
+        path: 'notepad',
+        loadComponent: () => import('./features/notepad/notepad.component').then(m => m.NotepadComponent)
+    },
     { path: '**', redirectTo: '' }
 ];

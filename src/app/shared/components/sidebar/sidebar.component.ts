@@ -56,8 +56,11 @@ import { ModuleService } from '../../../core/services/module.service';
       <!-- 7. Try It Yourself (The Lab) -->
       <a routerLink="/lab" class="sidebar-btn">جرب بنفسك</a>
 
-      <!-- 8. Notepad -->
-      <a href="#" class="sidebar-btn">المفكره (ملاحظات)</a>
+      <!-- 8. Forum (Moved here for visibility) -->
+      <a routerLink="/forum" class="sidebar-btn">المنتدى</a>
+
+      <!-- 9. Notepad -->
+      <a routerLink="/notepad" class="sidebar-btn">المفكره (ملاحظات)</a>
       
       <!-- 9. Question Bank (Calendar/Activities placeholder) -->
       <a href="#" class="sidebar-btn">بنك الاسئلة (التقويم)</a>

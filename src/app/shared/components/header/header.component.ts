@@ -29,7 +29,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
       <a routerLink="/lab">جرب بنفسك (المعمل الافتراضي)</a>
       <a routerLink="/chat-room" routerLinkActive="active-tab">غرفة الحوار</a>
       <a routerLink="/email" routerLinkActive="active-tab">البريد الإلكتروني</a>
-      <a href="#">المنتدي</a>
+      <a routerLink="/forum" routerLinkActive="active-tab">المنتدي</a>
       <a href="#" style="display:flex;align-items:center;gap:4px;">
         <span class="material-icons" style="font-size:14px;">search</span>
         ابحث هنا
