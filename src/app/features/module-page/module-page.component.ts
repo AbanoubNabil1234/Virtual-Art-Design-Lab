@@ -10,35 +10,29 @@ import { toSignal } from '@angular/core/rxjs-interop';
   imports: [CommonModule],
   template: `
     @if (module(); as mod) {
-      <div style="direction: rtl; padding: 8px 0;">
+      <div class="py-2">
         
         <!-- Module Title -->
-        <h1 style="font-size: 1.6rem; font-weight: 700; color: #1a1a1a; text-align: center; margin-bottom: 6px; font-family: 'Noto Kufi Arabic', Arial, sans-serif;">
-          {{ mod.titleAr }}
-        </h1>
-        <h2 style="font-size: 0.95rem; color: #777; text-align: center; margin-bottom: 24px; font-style: italic;">
-          {{ mod.titleEn }}
-        </h2>
+        <div class="text-center mb-6">
+          <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-1">
+            {{ mod.titleAr }}
+          </h1>
+          <h2 class="text-sm md:text-base text-gray-500 italic">
+            {{ mod.titleEn }}
+          </h2>
+        </div>
 
         <!-- Description -->
-        <div style="
-          background: #f8f8f8;
-          border: 2px solid #bbb;
-          padding: 16px 20px;
-          margin-bottom: 24px;
-          font-size: 0.95rem;
-          line-height: 1.8;
-          color: #333;
-        ">
+        <div class="bg-gray-50 border-2 border-gray-200 rounded-lg p-4 md:p-6 mb-8 text-base md:text-lg leading-relaxed text-gray-800 shadow-inner">
           {{ mod.descriptionAr }}
         </div>
 
         <!-- Topics -->
-        <div style="margin-bottom: 24px;">
-          <h3 style="font-size: 1.1rem; font-weight: 700; color: #1a1a1a; margin-bottom: 12px; border-right: 4px solid #3a3a55; padding-right: 10px;">
+        <div class="mb-8">
+          <h3 class="text-lg font-bold text-gray-900 mb-4 border-r-4 border-secondary pr-3">
             المحتوى العلمي:
           </h3>
-          <ul style="list-style: disc; padding-right: 24px; font-size: 0.9rem; line-height: 2; color: #333;">
+          <ul class="list-disc pr-10 text-base leading-loose text-gray-700">
             @for (topic of mod.topics; track topic) {
               <li>{{ topic }}</li>
             }
@@ -47,33 +41,17 @@ import { toSignal } from '@angular/core/rxjs-interop';
 
         <!-- Experiment Steps -->
         @if (mod.experimentSteps) {
-          <div style="
-            border: 3px solid #555;
-            outline: 2px solid #999;
-            outline-offset: 3px;
-            padding: 20px;
-            background: #fafafa;
-          ">
-            <h3 style="font-size: 1.05rem; font-weight: 700; color: #1a1a1a; margin-bottom: 14px; border-right: 4px solid #c9a84c; padding-right: 10px;">
+          <div class="border-2 border-gray-600 outline outline-2 outline-gray-400 outline-offset-4 rounded-sm p-5 bg-white shadow-sm mb-6">
+            <h3 class="text-lg font-bold text-gray-900 mb-4 border-r-4 border-primary pr-3">
               خطوات التجربة:
             </h3>
-            <ol style="list-style: decimal; padding-right: 24px; font-size: 0.9rem; line-height: 2.2; color: #333;">
+            <ol class="list-decimal pr-10 text-base leading-relaxed text-gray-700 space-y-3">
               @for (step of mod.experimentSteps; track step) {
                 <li>{{ step }}</li>
               }
             </ol>
-            <div style="text-align: center; margin-top: 20px;">
-              <button style="
-                padding: 8px 28px;
-                background: linear-gradient(to bottom, #555577, #3d3d55);
-                border: 2px outset #777;
-                border-radius: 4px;
-                color: #ddd;
-                font-family: 'Noto Kufi Arabic', Arial, sans-serif;
-                font-weight: 700;
-                font-size: 0.85rem;
-                cursor: pointer;
-              ">
+            <div class="text-center mt-8">
+              <button class="btn-primary text-sm px-8 py-2">
                 فتح المحاكاة
               </button>
             </div>

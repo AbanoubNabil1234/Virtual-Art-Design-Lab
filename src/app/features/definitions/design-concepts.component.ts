@@ -7,13 +7,13 @@ import { ContentService } from '../../core/services/content.service';
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="content-container animate-fade-in-up" style="direction: rtl; font-family: 'Noto Kufi Arabic', Arial, sans-serif; padding: 2rem;">
-      <div *ngIf="pageData" class="page-content">
-        <h2 style="font-size: 1.8rem; font-weight: 800; color: #1a1a1a; margin-bottom: 2rem; border-bottom: 2px solid #6b4226; padding-bottom: 0.5rem; display: inline-block;">
+    <div class="p-4 md:p-8 animate-fade-in-up">
+      <div *ngIf="pageData">
+        <h2 class="text-2xl md:text-3xl font-extrabold text-gray-900 mb-6 border-b-4 border-primary pb-2 inline-block">
             {{ pageData.title }}
         </h2>
         
-        <div style="font-size: 1.2rem; line-height: 2; color: #444; max-width: 900px;">
+        <div class="text-lg md:text-xl leading-relaxed text-gray-700 max-w-4xl">
             {{ pageData.content }}
         </div>
       </div>

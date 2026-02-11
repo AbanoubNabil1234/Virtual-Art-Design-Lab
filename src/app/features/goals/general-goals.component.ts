@@ -7,18 +7,18 @@ import { ContentService } from '../../core/services/content.service';
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="flex flex-col py-8 px-6 home-content" style="direction: rtl; font-family: 'Noto Kufi Arabic', Arial, sans-serif;">
+    <div class="flex flex-col py-8 px-6 max-w-full overflow-hidden">
       
       <div *ngIf="pageData">
-        <h1 class="animate-fade-in-up" style="font-size: 1.8rem; font-weight: 800; color: #1a1a1a; margin-bottom: 2rem; border-bottom: 2px solid #ddd; padding-bottom: 1rem;">
+        <h1 class="animate-fade-in-up text-3xl font-extrabold text-gray-900 mb-8 border-b-2 border-gray-200 pb-4">
             {{ pageData.title }}
         </h1>
 
         <div class="animate-fade-in-up delay-100 goal-content" [innerHTML]="pageData.content"></div>
 
-        <div class="animate-fade-in-up delay-200" style="margin-top: 2rem; text-align: center;">
-            <div style="font-size: 1rem; color: #555; margin-bottom: 8px;">إعــداد الباحث</div>
-            <div style="font-size: 1.1rem; font-weight: bold; color: #1a1a1a;">أحمد عدنان ياسين</div>
+        <div class="animate-fade-in-up delay-200 mt-8 text-center bg-gray-50/50 p-4 rounded-lg border border-gray-100">
+            <div class="text-sm text-gray-500 mb-1">إعــداد الباحث</div>
+            <div class="text-lg font-bold text-gray-900">أحمد عدنان ياسين</div>
         </div>
       </div>
 

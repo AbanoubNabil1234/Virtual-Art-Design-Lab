@@ -5,10 +5,10 @@ import { SidebarComponent } from '../../shared/components/sidebar/sidebar.compon
 import { HeaderComponent } from '../../shared/components/header/header.component';
 
 @Component({
-    selector: 'app-book-layout',
-    standalone: true,
-    imports: [CommonModule, RouterOutlet, SidebarComponent, HeaderComponent],
-    template: `
+  selector: 'app-book-layout',
+  standalone: true,
+  imports: [CommonModule, RouterOutlet, SidebarComponent, HeaderComponent],
+  template: `
     <app-header (toggleMenu)="isDrawerOpen.set(!isDrawerOpen())"></app-header>
 
     <!-- Book on a desk -->
@@ -38,16 +38,18 @@ import { HeaderComponent } from '../../shared/components/header/header.component
     <!-- Mobile Drawer -->
     <div *ngIf="isDrawerOpen()" class="drawer-overlay" (click)="isDrawerOpen.set(false)">
       <div class="drawer-panel" (click)="$event.stopPropagation()">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding:4px 8px;">
-          <span style="color:#ddd;font-weight:700;font-size:1rem;">القائمة</span>
-          <button (click)="isDrawerOpen.set(false)" style="color:#aaa;font-size:1.4rem;cursor:pointer;background:none;border:none;">✕</button>
+        <div class="flex items-center justify-between mb-4 px-2">
+          <span class="text-white font-bold text-lg">اللـوحـــة</span>
+          <button (click)="isDrawerOpen.set(false)" 
+                  class="text-gray-400 hover:text-white text-2xl" 
+                  aria-label="إغلاق">&times;</button>
         </div>
         <app-sidebar></app-sidebar>
       </div>
     </div>
   `,
-    styles: []
+  styles: []
 })
 export class BookLayoutComponent {
-    isDrawerOpen = signal(false);
+  isDrawerOpen = signal(false);
 }
