@@ -28,7 +28,7 @@ import { GlobalSearchComponent } from '../global-search/global-search.component'
     <!-- Sub Navigation Bar -->
     <nav class="sub-nav">
       <a routerLink="/" routerLinkActive="active-tab" [routerLinkActiveOptions]="{exact: true}">الرئيسية</a>
-      <a href="#" class="hidden sm:inline-block">التعليمات</a>
+      <a routerLink="/instructions" routerLinkActive="active-tab">التعليمات</a>
       <a routerLink="/lab" routerLinkActive="active-tab">المعمل الافتراضي</a>
       <a routerLink="/chat-room" routerLinkActive="active-tab">غرفة الحوار</a>
       <a routerLink="/email" routerLinkActive="active-tab">البريد الإلكتروني</a>

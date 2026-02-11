@@ -53,6 +53,10 @@ export const routes: Routes = [
             {
                 path: 'chat-room',
                 loadComponent: () => import('./features/chat-room/chat-room.component').then(m => m.ChatRoomComponent)
+            },
+            {
+                path: 'instructions',
+                loadComponent: () => import('./features/instructions/instructions.component').then(m => m.InstructionsComponent)
             }
         ]
     },
