@@ -17,9 +17,9 @@ import { CommonModule } from '@angular/common';
       </p>
       
       <div class="animate-fade-in-up delay-200 mb-10">
-        <a routerLink="/lab" class="btn-primary">
+        <a routerLink="/lab" class="btn-action">
           <span>ابدأ التجربة الآن</span>
-          <span class="material-icons rtl-flip">arrow_back</span>
+          <span class="material-icons rtl-flip">rocket_launch</span>
         </a>
       </div>
 

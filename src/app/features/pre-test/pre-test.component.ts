@@ -16,60 +16,34 @@ interface Question {
   imports: [CommonModule, FormsModule],
   templateUrl: './pre-test.component.html',
   styles: [`
-    .exam-container {
-      padding: 2rem;
-      direction: rtl;
-      font-family: 'Noto Kufi Arabic', Arial, sans-serif;
-      color: #1a1a1a;
-      max-width: 900px;
-      margin: 0 auto;
-    }
-    .instruction-card {
-      background: #f9f9f9;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      padding: 2rem;
-      text-align: center;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-    }
     .question-card {
       background: #fff;
       border: 1px solid #eee;
-      border-radius: 8px;
-      padding: 1.5rem;
-      margin-bottom: 1.5rem;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+      border-radius: 0.5rem;
+      padding: clamp(1rem, 3vw, 1.5rem);
+      margin-bottom: 1.25rem;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     }
     .option-row {
       display: flex;
       align-items: center;
-      gap: 10px;
-      margin: 10px 0;
-      padding: 10px;
-      border-radius: 4px;
-      transition: background 0.2s;
+      gap: 0.75rem;
+      margin: 0.625rem 0;
+      padding: 0.75rem;
+      border-radius: 0.375rem;
+      transition: all 0.2s;
       cursor: pointer;
+      border: 1px solid transparent;
     }
     .option-row:hover {
-      background: #f0f8ff;
+      background: rgba(107, 66, 38, 0.05);
+      border-color: rgba(107, 66, 38, 0.2);
     }
-    .btn-start {
-      background: #6b4226;
-      color: white;
-      padding: 12px 32px;
-      border-radius: 4px;
-      font-weight: bold;
-      border: none;
-      cursor: pointer;
-      font-size: 1.1rem;
-    }
-    h2 { font-weight: 800; margin-bottom: 1rem; }
-    h3 { font-weight: bold; margin-bottom: 1.5rem; color: #444; }
     .score-display {
-      font-size: 2rem;
+      font-size: clamp(1.5rem, 5vw, 2.5rem);
       color: #27ae60;
-      font-weight: bold;
-      margin: 1rem 0;
+      font-weight: 800;
+      margin: 1.5rem 0;
     }
   `]
 })

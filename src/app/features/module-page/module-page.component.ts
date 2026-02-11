@@ -51,8 +51,9 @@ import { toSignal } from '@angular/core/rxjs-interop';
               }
             </ol>
             <div class="text-center mt-8">
-              <button class="btn-primary text-sm px-8 py-2">
-                فتح المحاكاة
+              <button class="btn-action px-10 py-4 text-base shadow-xl">
+                <span>فتح المحاكاة (بدء التجربة)</span>
+                <span class="material-icons">rocket_launch</span>
               </button>
             </div>
           </div>

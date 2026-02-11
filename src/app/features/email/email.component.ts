@@ -7,63 +7,59 @@ import { FormsModule } from '@angular/forms';
   standalone: true,
   imports: [CommonModule, FormsModule],
   template: `
-    <div class="email-container animate-fade-in">
+    <div class="h-full flex flex-col bg-gray-50 animate-fade-in shadow-xl rounded-lg overflow-hidden border border-gray-200">
       <!-- Header -->
-      <div class="email-header">
-        <div class="header-right">
-          <span class="material-icons globe-icon">public</span>
-          <h1>البريد الإلكتروني</h1>
+      <div class="bg-gray-900 text-white px-4 md:px-8 py-4 flex flex-col md:flex-row justify-between items-center gap-4 border-b-4 border-primary">
+        <div class="flex items-center gap-3">
+          <span class="material-icons text-primary text-3xl">public</span>
+          <h1 class="text-xl font-bold">البريد الإلكتروني</h1>
         </div>
-        <div class="header-left">
+        <div class="flex items-center gap-3 text-sm text-gray-400">
           <span>مرحباً: أحمد عدنان ياسين</span>
-          <span class="material-icons mail-icon">account_circle</span>
+          <span class="material-icons text-2xl">account_circle</span>
         </div>
       </div>
 
       <!-- Top Navigation Tabs -->
-      <div class="email-nav">
-        <button class="nav-item" [class.active]="activeTab === 'compose'" (click)="activeTab = 'compose'">
-          <span class="material-icons">edit</span>
-          <span>إنشاء رسالة</span>
-        </button>
-        <button class="nav-item" [class.active]="activeTab === 'inbox'" (click)="activeTab = 'inbox'">
-          <span class="material-icons">inbox</span>
-          <span>الوارد</span>
-        </button>
-        <button class="nav-item" [class.active]="activeTab === 'sent'" (click)="activeTab = 'sent'">
-          <span class="material-icons">send</span>
-          <span>الصادر</span>
-        </button>
-        <button class="nav-item" [class.active]="activeTab === 'drafts'" (click)="activeTab = 'drafts'">
-          <span class="material-icons">drafts</span>
-          <span>مسودة</span>
+      <div class="bg-gray-800 flex flex-wrap px-2 md:px-6">
+        <button *ngFor="let tab of tabs" 
+                (click)="activeTab = tab.id"
+                class="flex items-center gap-2 px-4 py-4 text-sm md:text-base font-semibold transition-all border-b-4"
+                [class.text-white]="activeTab === tab.id"
+                [class.border-primary]="activeTab === tab.id"
+                [class.bg-gray-700]="activeTab === tab.id"
+                [class.text-gray-400]="activeTab !== tab.id"
+                [class.border-transparent]="activeTab !== tab.id"
+                [class.hover:text-white]="activeTab !== tab.id">
+          <span class="material-icons text-lg">{{tab.icon}}</span>
+          <span>{{tab.label}}</span>
         </button>
       </div>
 
       <!-- Main Content Area -->
-      <div class="email-body">
-        <div class="email-content">
+      <div class="flex-1 overflow-y-auto p-4 md:p-8">
+        <div class="max-w-5xl mx-auto bg-white rounded-xl shadow-sm border border-gray-100 min-h-[500px] flex flex-col">
           
           <!-- Compose View -->
-          <div class="compose-view" *ngIf="activeTab === 'compose'">
-            <div class="view-header">
-              <h2>رسالة جديدة</h2>
-              <div class="toolbar">
-                <button class="action-btn send">
-                  <span class="material-icons">send</span>
+          <div class="p-6 md:p-8 flex-1" *ngIf="activeTab === 'compose'">
+            <div class="flex justify-between items-center mb-8 pb-4 border-b border-gray-100">
+              <h2 class="text-2xl font-bold text-gray-800">رسالة جديدة</h2>
+              <div class="flex gap-2">
+                <button class="btn-primary py-2 px-6 flex items-center gap-2">
+                  <span class="material-icons text-sm">send</span>
                   إرسال
                 </button>
-                <button class="action-btn save">
-                  <span class="material-icons">save</span>
+                <button class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-2 px-6 rounded-lg transition-colors flex items-center gap-2">
+                  <span class="material-icons text-sm">save</span>
                   حفظ
                 </button>
               </div>
             </div>
 
-            <div class="form-container">
-              <div class="form-group">
-                <label>إلى:</label>
-                <select class="form-control">
+            <div class="space-y-6">
+              <div class="flex flex-col md:flex-row md:items-center gap-2">
+                <label class="w-20 font-bold text-gray-600">إلى:</label>
+                <select class="flex-1 bg-gray-50 border border-gray-200 rounded-lg p-2 focus:ring-2 focus:ring-primary focus:border-transparent outline-none">
                   <option>اختر المرسل إليه...</option>
                   <option>المعلم (Teacher)</option>
                   <option>زميل 1</option>
@@ -71,72 +67,53 @@ import { FormsModule } from '@angular/forms';
                 </select>
               </div>
 
-              <div class="form-group">
-                <label>الموضوع:</label>
-                <input type="text" class="form-control" placeholder="أدخل عنوان الموضوع">
+              <div class="flex flex-col md:flex-row md:items-center gap-2">
+                <label class="w-20 font-bold text-gray-600">الموضوع:</label>
+                <input type="text" placeholder="أدخل عنوان الموضوع" class="flex-1 bg-gray-50 border border-gray-200 rounded-lg p-2 focus:ring-2 focus:ring-primary focus:border-transparent outline-none">
               </div>
 
-              <div class="form-group">
-                <label>المرفقات:</label>
-                <div class="file-input-wrapper">
-                  <button>رفع ملف</button>
-                  <span>لم يتم اختيار ملف</span>
+              <div class="flex flex-col md:flex-row md:items-center gap-2">
+                <label class="w-20 font-bold text-gray-600">المرفقات:</label>
+                <div class="flex-1 flex items-center gap-3">
+                  <button class="bg-white border-2 border-dashed border-gray-300 hover:border-primary text-gray-500 hover:text-primary px-4 py-2 rounded-lg transition-all text-sm font-semibold">
+                    + رفع ملف
+                  </button>
+                  <span class="text-xs text-gray-400">لم يتم اختيار ملف</span>
                 </div>
               </div>
 
-              <div class="editors-wrapper">
-                 <div class="editor-toolbar">
-                    <span class="material-icons">format_bold</span>
-                    <span class="material-icons">format_italic</span>
-                    <span class="material-icons">format_underlined</span>
-                    <span class="separator">|</span>
-                    <span class="material-icons">format_align_right</span>
-                    <span class="material-icons">format_align_center</span>
-                    <span class="material-icons">format_align_left</span>
-                    <span class="separator">|</span>
-                    <span class="material-icons">format_list_bulleted</span>
-                    <span class="material-icons">format_list_numbered</span>
+              <div class="border border-gray-200 rounded-lg overflow-hidden flex flex-col">
+                 <div class="bg-gray-50 p-2 border-b border-gray-200 flex flex-wrap gap-4 text-gray-500">
+                    <span class="material-icons cursor-pointer hover:text-primary">format_bold</span>
+                    <span class="material-icons cursor-pointer hover:text-primary">format_italic</span>
+                    <span class="material-icons cursor-pointer hover:text-primary">format_underlined</span>
+                    <div class="w-px h-6 bg-gray-300 mx-1"></div>
+                    <span class="material-icons cursor-pointer hover:text-primary">format_align_right</span>
+                    <span class="material-icons cursor-pointer hover:text-primary">format_align_center</span>
+                    <span class="material-icons cursor-pointer hover:text-primary">format_align_left</span>
                   </div>
-                  <textarea class="editor-textarea" placeholder="اكتب نص الرسالة هنا..."></textarea>
+                  <textarea placeholder="اكتب نص الرسالة هنا..." class="flex-1 p-4 min-h-[250px] outline-none resize-y text-lg"></textarea>
               </div>
             </div>
           </div>
 
-          <!-- Inbox View -->
-          <div class="inbox-view" *ngIf="activeTab === 'inbox'">
-            <div class="empty-state">
-              <div class="icon-circle">
-                <span class="material-icons">inbox</span>
-              </div>
-              <h3>صندوق الوارد فارغ</h3>
-              <p>لا توجد رسائل جديدة لعرضها حالياً.</p>
+          <!-- List Views (Inbox, Sent, Drafts) -->
+          <div class="flex-1 flex flex-col justify-center items-center p-12 text-center" *ngIf="activeTab !== 'compose'">
+            <div class="bg-gray-100 p-8 rounded-full mb-6">
+              <span class="material-icons text-6xl text-gray-300">
+                {{activeTab === 'inbox' ? 'inbox' : activeTab === 'sent' ? 'send' : 'drafts'}}
+              </span>
             </div>
-          </div>
-
-          <!-- Sent View -->
-           <div class="inbox-view" *ngIf="activeTab === 'sent'">
-            <div class="empty-state">
-              <div class="icon-circle">
-                <span class="material-icons">send</span>
-              </div>
-              <h3>لا توجد رسائل مرسلة</h3>
-            </div>
-          </div>
-
-          <!-- Drafts View -->
-           <div class="inbox-view" *ngIf="activeTab === 'drafts'">
-            <div class="empty-state">
-              <div class="icon-circle">
-                <span class="material-icons">drafts</span>
-              </div>
-              <h3>لا توجد مسودات</h3>
-            </div>
+            <h3 class="text-2xl font-bold text-gray-800 mb-2">
+              {{activeTab === 'inbox' ? 'صندوق الوارد فارغ' : activeTab === 'sent' ? 'لا توجد رسائل مرسلة' : 'لا توجد مسودات'}}
+            </h3>
+            <p class="text-gray-500 max-w-xs">لا توجد رسائل لعرضها حالياً في هذا القسم.</p>
           </div>
 
         </div>
       </div>
       
-      <div class="email-footer">
+      <div class="text-center py-4 border-t border-gray-200 text-gray-400 text-sm bg-white">
         &copy; 2026 جميع الحقوق محفوظة - المعمل الافتراضي
       </div>
     </div>
@@ -145,258 +122,15 @@ import { FormsModule } from '@angular/forms';
     :host {
       display: block;
       height: 100%;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      direction: rtl;
-      background-color: #f8f9fa;
-    }
-
-    .email-container {
-      background: white;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-      box-shadow: 0 0 20px rgba(0,0,0,0.05);
-      overflow: hidden;
-    }
-
-    /* --- Header --- */
-    .email-header {
-      background: #1e1e1e; /* Dark professional header */
-      color: white;
-      padding: 1rem 2rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 3px solid #6b4226; /* Accent color from site */
-    }
-
-    .header-right {
-      display: flex;
-      align-items: center;
-      gap: 15px;
-    }
-
-    .header-right h1 {
-      margin: 0;
-      font-size: 1.4rem;
-      font-weight: 500;
-    }
-
-    .globe-icon { font-size: 1.8rem; color: #6b4226; } /* Accent */
-    
-    .header-left {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        font-size: 0.9rem;
-        color: #ccc;
-    }
-
-    /* --- Top Navigation --- */
-    .email-nav {
-        background: #2d2d2d;
-        display: flex;
-        padding: 0 2rem;
-        gap: 5px;
-    }
-
-    .nav-item {
-        background: transparent;
-        border: none;
-        color: #aaa;
-        padding: 15px 25px;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 1rem;
-        font-family: inherit;
-        border-bottom: 3px solid transparent;
-        transition: all 0.3s;
-    }
-
-    .nav-item:hover {
-        background: rgba(255,255,255,0.05);
-        color: white;
-    }
-
-    .nav-item.active {
-        color: white;
-        background: #3a3a3a;
-        border-bottom-color: #6b4226; /* Accent */
-    }
-
-    .nav-item .material-icons { font-size: 1.2rem; }
-
-    /* --- Body --- */
-    .email-body {
-        flex: 1;
-        background: #f4f6f8;
-        padding: 2rem;
-        overflow-y: auto;
-    }
-
-    .email-content {
-        max-width: 1000px;
-        margin: 0 auto;
-        background: white;
-        border-radius: 8px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        min-height: 500px;
-        display: flex;
-        flex-direction: column;
-    }
-
-    /* --- Compose --- */
-    .compose-view {
-        padding: 2rem;
-    }
-
-    .view-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 2rem;
-        border-bottom: 1px solid #eee;
-        padding-bottom: 1rem;
-    }
-
-    .view-header h2 {
-        font-size: 1.5rem;
-        color: #333;
-        margin: 0;
-    }
-
-    .toolbar { display: flex; gap: 10px; }
-
-    .action-btn {
-        padding: 8px 20px;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        font-family: inherit;
-        font-weight: 600;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        transition: all 0.2s;
-    }
-
-    .action-btn.send {
-        background: #6b4226; /* Site accent */
-        color: white;
-    }
-
-    .action-btn.send:hover { background: #5a3720; }
-
-    .action-btn.save {
-        background: #e0e0e0;
-        color: #333;
-    }
-    
-    .action-btn.save:hover { background: #d0d0d0; }
-
-    .form-container { display: flex; flex-direction: column; gap: 1.5rem; }
-
-    .form-group { display: flex; align-items: center; gap: 1rem; }
-
-    .form-group label {
-        width: 80px;
-        font-weight: 600;
-        color: #555;
-    }
-
-    .form-control {
-        flex: 1;
-        padding: 10px 15px;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        font-family: inherit;
-    }
-
-    .form-control:focus { outline: none; border-color: #6b4226; }
-
-    .file-input-wrapper {
-        flex: 1;
-        display: flex;
-        align-items: center;
-        gap: 15px;
-    }
-
-    .file-input-wrapper button {
-        background: white;
-        border: 1px solid #ccc;
-        padding: 5px 15px;
-        border-radius: 4px;
-        cursor: pointer;
-    }
-
-    .editors-wrapper {
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        margin-top: 1rem;
-    }
-
-    .editor-toolbar {
-        background: #f9f9f9;
-        padding: 8px 15px;
-        border-bottom: 1px solid #ddd;
-        display: flex;
-        gap: 15px;
-        color: #666;
-    }
-
-    .editor-toolbar span { cursor: pointer; }
-    .editor-toolbar span:hover { color: #000; }
-
-    .editor-textarea {
-        width: 100%;
-        border: none;
-        padding: 20px;
-        min-height: 250px;
-        font-family: inherit;
-        resize: vertical;
-        outline: none;
-    }
-
-    /* --- Empty States --- */
-    .inbox-view {
-        flex: 1;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        padding: 3rem;
-    }
-
-    .empty-state {
-        text-align: center;
-        color: #777;
-    }
-
-    .icon-circle {
-        background: #f0f0f0;
-        width: 80px;
-        height: 80px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 auto 1.5rem auto;
-    }
-
-    .icon-circle .material-icons { font-size: 2.5rem; color: #bbb; }
-
-    /* --- Footer --- */
-    .email-footer {
-        text-align: center;
-        padding: 1rem;
-        color: #777;
-        font-size: 0.85rem;
-        background: white;
-        border-top: 1px solid #eee;
     }
   `]
 })
 export class EmailComponent {
   activeTab: 'compose' | 'inbox' | 'sent' | 'drafts' = 'compose';
+  tabs = [
+    { id: 'compose', label: 'إنشاء رسالة', icon: 'edit' },
+    { id: 'inbox', label: 'الوارد', icon: 'inbox' },
+    { id: 'sent', label: 'الصادر', icon: 'send' },
+    { id: 'drafts', label: 'مسودة', icon: 'drafts' }
+  ] as const;
 }

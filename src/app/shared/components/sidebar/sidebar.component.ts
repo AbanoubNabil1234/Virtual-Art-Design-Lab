@@ -28,19 +28,21 @@ import { ModuleService } from '../../../core/services/module.service';
       <a routerLink="/performance-test" routerLinkActive="active" class="sidebar-btn">الاختبار الأدائي (ب)</a>
 
       <!-- 4. Lessons List -->
-      <div class="sidebar-label flex justify-between items-center cursor-pointer select-none" 
-           (click)="toggleLessons()">
+      <button class="sidebar-btn flex justify-between items-center w-full" 
+              (click)="toggleLessons()"
+              [class.active]="showLessons()">
         <span>قائمـــة الــدروس</span>
-        <span class="material-icons transition-transform" [class.rotate-180]="showLessons()">
+        <span class="material-icons transition-transform duration-300" [class.rotate-180]="showLessons()">
           expand_more
         </span>
-      </div>
+      </button>
 
       <div *ngIf="showLessons()" class="lessons-container">
         <a *ngFor="let mod of modules"
            [routerLink]="['/module', mod.id]"
            routerLinkActive="active"
            class="sidebar-btn-sub">
+          <span class="material-icons text-sm opacity-50 ml-2">article</span>
           {{ mod.titleAr }}
         </a>
       </div>
@@ -63,13 +65,6 @@ import { ModuleService } from '../../../core/services/module.service';
       animation: slideDown 0.3s ease-out;
     }
     
-    .sidebar-btn-sub {
-      @extend .sidebar-btn;
-      font-size: 0.68rem;
-      min-height: 2.25rem;
-      padding: 0.375rem 0.75rem;
-    }
-
     @keyframes slideDown {
       from { opacity: 0; transform: translateY(-0.5rem); }
       to { opacity: 1; transform: translateY(0); }

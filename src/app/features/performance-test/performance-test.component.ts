@@ -13,126 +13,116 @@ interface PerformanceTask {
   standalone: true,
   imports: [CommonModule, FormsModule],
   template: `
-    <div class="exam-container">
+    <div class="max-w-4xl mx-auto p-4 md:p-8">
     
       <!-- STEP 1: INTRO / INSTRUCTIONS -->
-      <div *ngIf="step() === 'intro'" class="instruction-card animate-fade-in-up">
-        <h2 style="color: #1a1a1a; margin-bottom: 0.5rem;">اختبار (ب)</h2>
-        <h3 style="color: #555; margin-bottom: 2rem;">اختبار الجانب الأدائي في مهارات التصميم للطلاب المرحلة الثانوية</h3>
-
-        <div style="text-align: right; margin: 2rem 0; line-height: 1.8;">
-          <h4 style="font-weight: bold; color: #6b4226; margin-bottom: 10px; font-size: 1.1rem;">هدف الاختبار:</h4>
-          <p style="color: #444; margin-bottom: 1.5rem;">
-            يهدف هذا الاختبار إلى قياس مستوى إتقانك لمهارات التصميم الرقمي باستخدام بيئة المعمل الافتراضي، والمطلوب تنفيذ المهام التصميمية الآتية باستخدام أدوات وبرامج المعمل الافتراضي.
-          </p>
-
-          <h4 style="font-weight: bold; color: #6b4226; margin-bottom: 10px; font-size: 1.1rem;">تعليمات الاختبار:</h4>
-          <p style="margin-bottom: 0.5rem;">عزيزي الطالب / عزيزتي الطالبة يرجى قراءة التعليمات التالية بعناية:</p>
-          <ul style="list-style-type: none; padding-right: 0; color: #555;">
-             <li style="margin-bottom: 8px;">1. يتكون هذا الاختبار من مجموعة من المهام العملية التي تقيس مهارات التصميم الرقمي.</li>
-             <li style="margin-bottom: 8px;">2. يرجى قراءة كل مهمة بعناية وتنفيذ التصميم المطلوب باستخدام أدوات المعمل الافتراضي.</li>
-             <li style="margin-bottom: 8px;">3. يجب توظيف جميع العناصر التصميمية الرقمية المطلوبة في كل مهمة.</li>
-             <li style="margin-bottom: 8px;">4. قم بوضع علامة (✓) أمام المهمة التي قمت بإنجازها.</li>
-          </ul>
+      <div *ngIf="step() === 'intro'" class="bg-gray-50 border border-gray-200 rounded-xl p-6 md:p-10 shadow-sm animate-fade-in-up">
+        <div class="text-center mb-8">
+            <h2 class="text-3xl font-extrabold text-gray-900 mb-2">اختبار (ب)</h2>
+            <h3 class="text-lg text-gray-600 font-semibold">اختبار الجانب الأدائي في مهارات التصميم للطلاب المرحلة الثانوية</h3>
         </div>
 
-        <div style="margin-top: 2rem;">
-            <h3 style="color: #6b4226;">مع تمنياتنا لك بالتوفيق</h3>
-            <div style="text-align: center; margin-top: 1rem;">
-                <p style="font-size: 1rem; color: #555; margin-bottom: 5px;">إعــداد الباحث</p>
-                <p style="font-weight: bold; font-size: 1.1rem; color: #777;">أحمد عدنان ياسين</p>
+        <div class="space-y-8 text-right leading-relaxed text-gray-800">
+          <div>
+            <h4 class="font-bold text-secondary border-r-4 border-secondary pr-3 mb-3 text-xl">هدف الاختبار:</h4>
+            <p class="text-lg">
+              يهدف هذا الاختبار إلى قياس مستوى إتقانك لمهارات التصميم الرقمي باستخدام بيئة المعمل الافتراضي، والمطلوب تنفيذ المهام التصميمية الآتية باستخدام أدوات وبرامج المعمل الافتراضي.
+            </p>
+          </div>
+
+          <div>
+            <h4 class="font-bold text-secondary border-r-4 border-secondary pr-3 mb-3 text-xl">تعليمات الاختبار:</h4>
+            <p class="text-lg mb-4">عزيزي الطالب / عزيزتي الطالبة يرجى قراءة التعليمات التالية بعناية:</p>
+            <ul class="list-decimal list-inside space-y-3 pr-2 text-lg">
+               <li>يتكون هذا الاختبار من مجموعة من المهام العملية التي تقيس مهارات التصميم الرقمي.</li>
+               <li>يرجى قراءة كل مهمة بعناية وتنفيذ التصميم المطلوب باستخدام أدوات المعمل الافتراضي.</li>
+               <li>يجب توظيف جميع العناصر التصميمية الرقمية المطلوبة في كل مهمة.</li>
+               <li>قم بوضع علامة (✓) أمام المهمة التي قمت بإنجازها.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="mt-12 pt-8 border-t border-gray-200 text-center">
+            <h3 class="text-xl font-bold text-secondary mb-6">مع تمنياتنا لك بالتوفيق</h3>
+            <div class="flex flex-col items-center">
+                <p class="text-sm text-gray-500 mb-1">إعــداد الباحث</p>
+                <p class="text-xl font-bold text-gray-900">أحمد عدنان ياسين</p>
             </div>
+            <button class="btn-action mt-10 text-lg" (click)="startExam()">
+              <span>ابدأ الاختبار</span>
+              <span class="material-icons">rocket_launch</span>
+            </button>
         </div>
-
-        <button class="btn-start hover-scale" (click)="startExam()">ابدأ الاختبار</button>
       </div>
 
       <!-- STEP 2: EXAM (Tasks List) -->
-      <div *ngIf="step() === 'exam'" class="animate-fade-in-up">
-        <div class="instruction-card" style="margin-bottom: 20px; padding: 1rem; text-align: right;">
-            <h2 style="margin: 0; font-size: 1.2rem; color: #333;">قائمة المهام الأدائية: قم بتنفيذ المهام التالية ثم ضع علامة (✓) عند الانتهاء:</h2>
+      <div *ngIf="step() === 'exam'" class="animate-fade-in">
+        <div class="bg-white border-2 border-primary/20 rounded-lg p-5 mb-8 shadow-sm text-center">
+            <h2 class="text-xl font-bold text-gray-900 leading-tight">قائمة المهام الأدائية: قم بتنفيذ المهام التالية ثم ضع علامة (✓) عند الانتهاء:</h2>
         </div>
 
-        <!-- A4 Paper Container -->
-        <div style="
-            width: 100%;
-            max-width: 100%;
-            min-height: 297mm;
-            padding: 5mm; 
-            margin: 0 auto;
-            background: white;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            direction: rtl;
-            font-family: 'Noto Kufi Arabic', Arial, sans-serif;
-            box-sizing: border-box;
-            display: flex;
-            flex-direction: column;
-        ">
-            <table style="width: 100%; border-collapse: collapse; font-size: 0.95rem;">
-                <thead>
-                    <tr>
-                        <th style="border: 1px solid #444; background: #5d4037; color: white; padding: 12px; width: 50px; text-align: center;">م</th>
-                        <th style="border: 1px solid #444; background: #5d4037; color: white; padding: 12px; text-align: right;">المهمة الأدائية المطلوبة</th>
-                        <th style="border: 1px solid #444; background: #5d4037; color: white; padding: 12px; width: 100px; text-align: center;">حالة التنفيذ</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr *ngFor="let task of transformQuestions(visibleTasks)">
-                         <td style="border: 1px solid #444; padding: 15px; text-align: center; vertical-align: top; font-weight: bold; background: #fdfdfd;">
-                            {{task.id}}
-                         </td>
-                         <td style="border: 1px solid #444; padding: 15px; text-align: right; vertical-align: top; line-height: 1.8; color: #333;">
-                            {{task.text}}
-                         </td>
-                         <td style="border: 1px solid #444; padding: 15px; vertical-align: middle; text-align: center; background: #fffbe6;">
-                            <div style="display: flex; justify-content: center; align-items: center;">
-                                <input type="checkbox" 
-                                       [(ngModel)]="task.completed"
-                                       style="width: 24px; height: 24px; cursor: pointer; accent-color: #27ae60;">
-                            </div>
-                         </td>
-                    </tr>
-                </tbody>
-            </table>
+        <div class="space-y-4">
+            <div *ngFor="let task of transformQuestions(visibleTasks)" 
+                 class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow flex gap-4">
+                 
+                 <div class="flex-shrink-0 bg-secondary/10 text-secondary w-10 h-10 rounded-lg flex items-center justify-center font-bold text-lg">
+                    {{task.id}}
+                 </div>
 
-            <!-- Pagination -->
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 2rem;">
-                <button [disabled]="currentPage() === 0" (click)="prevPage()"
-                    [style.opacity]="currentPage() === 0 ? 0.5 : 1"
-                    style="padding: 10px 24px; background: #555; color: white; border: none; border-radius: 4px; cursor: pointer;">
-                    السابق
-                </button>
-        
-                <span style="font-weight: bold; color: #333;">
-                    صفحة {{currentPage() + 1}} من {{totalPages}}
-                </span>
-        
-                <button *ngIf="currentPage() < totalPages - 1" (click)="nextPage()"
-                    style="padding: 10px 24px; background: #6b4226; color: white; border: none; border-radius: 4px; cursor: pointer;">
-                    التالي
-                </button>
-        
-                <button *ngIf="currentPage() === totalPages - 1" (click)="submitExam()"
-                    style="padding: 10px 24px; background: #27ae60; color: white; border: none; border-radius: 4px; cursor: pointer;">
-                    تسليم المهام
-                </button>
+                 <div class="flex-grow">
+                    <p class="text-lg text-gray-800 leading-relaxed mb-4">{{task.text}}</p>
+                    
+                    <label class="flex items-center gap-3 cursor-pointer group w-fit">
+                        <div class="relative">
+                            <input type="checkbox" 
+                                   [(ngModel)]="task.completed"
+                                   class="peer hidden">
+                            <div class="w-6 h-6 border-2 border-gray-300 rounded peer-checked:bg-green-600 peer-checked:border-green-600 transition-all flex items-center justify-center text-white">
+                                <span class="material-icons text-sm scale-0 peer-checked:scale-100 transition-transform">check</span>
+                            </div>
+                        </div>
+                        <span class="text-gray-600 group-hover:text-green-700 transition-colors font-semibold">تم التنقيد</span>
+                    </label>
+                 </div>
             </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="flex justify-between items-center mt-12 py-6 border-t border-gray-100">
+            <button [disabled]="currentPage() === 0" (click)="prevPage()"
+                    class="btn-primary bg-gray-500 hover:bg-gray-600 disabled:opacity-30 px-6 py-2">
+                السابق
+            </button>
+    
+            <span class="font-bold text-gray-600 text-lg">
+                صفحة {{currentPage() + 1}} من {{totalPages}}
+            </span>
+    
+            <button *ngIf="currentPage() < totalPages - 1" (click)="nextPage()"
+                    class="btn-primary px-6 py-2">
+                التالي
+            </button>
+    
+            <button *ngIf="currentPage() === totalPages - 1" (click)="submitExam()"
+                    class="btn-primary bg-green-600 hover:bg-green-700 px-6 py-2">
+                تسليم المهام
+            </button>
         </div>
       </div>
 
       <!-- STEP 3: RESULT -->
-      <div *ngIf="step() === 'result'" class="instruction-card animate-scale-in">
-        <span class="material-icons" style="font-size: 64px; color: #27ae60; margin-bottom: 1rem;">check_circle</span>
-        <h2 style="color: #27ae60;">تم تسليم الاختبار بنجاح</h2>
-        <p style="font-size: 1.1rem; color: #555;">شكراً لك على إتمام الاختبار الأدائي.</p>
+      <div *ngIf="step() === 'result'" class="bg-white border border-gray-100 rounded-2xl p-10 shadow-xl text-center animate-scale-in">
+        <span class="material-icons text-7xl text-green-500 mb-4">check_circle</span>
+        <h2 class="text-3xl font-extrabold text-green-600 mb-2">تم تسليم الاختبار بنجاح</h2>
+        <p class="text-lg text-gray-600 mb-8">شكراً لك على إتمام الاختبار الأدائي.</p>
 
         <div class="score-display">
             المهام المنجزة: {{completedCount()}} / {{tasks().length}}
         </div>
 
-        <p style="color: #777;">تم تسجيل تقدمك في المعمل الافتراضي.</p>
+        <p class="text-gray-500 mt-4">تم تسجيل تقدمك في المعمل الافتراضي.</p>
 
-        <button class="btn-start" (click)="step.set('intro')" style="margin-top: 2rem; background: #666;">
+        <button class="btn-primary bg-gray-600 mt-10" (click)="step.set('intro')">
             عودة للصفحة الرئيسية للاختبار
         </button>
       </div>
@@ -140,50 +130,12 @@ interface PerformanceTask {
     </div>
   `,
   styles: [`
-    .exam-container {
-      padding: 2rem;
-      direction: rtl;
-      font-family: 'Noto Kufi Arabic', Arial, sans-serif;
-      color: #1a1a1a;
-      max-width: 900px;
-      margin: 0 auto;
-    }
-    .instruction-card {
-      background: #f9f9f9;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      padding: 2rem;
-      text-align: center;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-    }
-    .btn-start {
-      background: #6b4226;
-      color: white;
-      padding: 12px 32px;
-      border-radius: 4px;
-      font-weight: bold;
-      border: none;
-      cursor: pointer;
-      font-size: 1.1rem;
-      transition: transform 0.2s;
-    }
-    .btn-start:hover {
-      background: #5d3a20;
-    }
     .score-display {
-      font-size: 2rem;
+      font-size: clamp(2rem, 8vw, 2.5rem);
       color: #27ae60;
-      font-weight: bold;
-      margin: 1rem 0;
+      font-weight: 800;
+      margin: 1.5rem 0;
     }
-    .hover-scale:hover {
-        transform: scale(1.05);
-    }
-    /* Animations */
-    .animate-fade-in-up { animation: fadeInUp 0.5s ease-out; }
-    .animate-scale-in { animation: scaleIn 0.3s ease-out; }
-    @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-    @keyframes scaleIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
   `]
 })
 export class PerformanceTestComponent {
