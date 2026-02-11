@@ -53,12 +53,12 @@ export const routes: Routes = [
             {
                 path: 'chat-room',
                 loadComponent: () => import('./features/chat-room/chat-room.component').then(m => m.ChatRoomComponent)
-            },
-            {
-                path: 'lab',
-                loadComponent: () => import('./features/lab/lab.component').then(m => m.LabComponent)
             }
         ]
+    },
+    {
+        path: 'lab',
+        loadComponent: () => import('./features/lab/lab.component').then(m => m.LabComponent)
     },
     { path: '**', redirectTo: '' }
 ];
