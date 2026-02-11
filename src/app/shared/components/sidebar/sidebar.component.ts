@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { ModuleService } from '../../../core/services/module.service';
@@ -27,14 +27,25 @@ import { ModuleService } from '../../../core/services/module.service';
       <!-- 3. Performance Test (Test B) -->
       <a routerLink="/performance-test" class="sidebar-btn">الاختبار الأدائي (ب)</a>
 
-      <!-- 4. Lessons List -->
-      <div class="sidebar-label">قائمـــة الــدروس</div>
-      <a *ngFor="let mod of modules"
-         [routerLink]="['/module', mod.id]"
-         routerLinkActive="active"
-         class="sidebar-btn">
-        {{ mod.titleAr }}
-      </a>
+      <!-- 4. Lessons List (Dropdown) -->
+      <div class="sidebar-label" 
+           (click)="toggleLessons()" 
+           style="cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+        <span>قائمـــة الــدروس</span>
+        <span class="material-icons" style="font-size: 1.2rem;">
+          {{ showLessons() ? 'expand_less' : 'expand_more' }}
+        </span>
+      </div>
+
+      <div *ngIf="showLessons()" class="lessons-container" style="padding-right: 10px; border-right: 2px solid #ddd; margin-right: 5px;">
+        <a *ngFor="let mod of modules"
+           [routerLink]="['/module', mod.id]"
+           routerLinkActive="active"
+           class="sidebar-btn"
+           style="font-size: 0.9rem; padding: 8px 10px;">
+          {{ mod.titleAr }}
+        </a>
+      </div>
 
       <!-- 5. Post-Achievement Test (Reuse pre-test) -->
       <a routerLink="/pre-test" class="sidebar-btn">الاختبار التحصيلي البعدي</a>
@@ -47,14 +58,32 @@ import { ModuleService } from '../../../core/services/module.service';
 
       <!-- 8. Notepad -->
       <a href="#" class="sidebar-btn">المفكره (ملاحظات)</a>
-
+      
       <!-- 9. Question Bank (Calendar/Activities placeholder) -->
       <a href="#" class="sidebar-btn">بنك الاسئلة (التقويم)</a>
     </div>
   `,
-  styles: []
+  styles: [`
+    .lessons-container {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      animation: expand 0.3s ease-out;
+    }
+    @keyframes expand {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  `]
 })
 export class SidebarComponent {
   moduleService = inject(ModuleService);
   modules = this.moduleService.getModules();
+
+  // Signal for toggling lessons list
+  showLessons = signal(false);
+
+  toggleLessons() {
+    this.showLessons.update(value => !value);
+  }
 }

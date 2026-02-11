@@ -101,7 +101,8 @@
             <div
                 style="display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 2rem;">
                 <button [disabled]="currentPage() === 0" (click)="prevPage()"
-                    style="padding: 10px 20px; background: #555; color: white; border: none; border-radius: 4px; cursor: pointer; opacity: currentPage() === 0 ? 0.5 : 1;">
+                    style="padding: 10px 20px; background: #555; color: white; border: none; border-radius: 4px; cursor: pointer;"
+                    [style.opacity]="currentPage() === 0 ? 0.5 : 1">
                     السابق
                 </button>
 

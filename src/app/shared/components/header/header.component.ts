@@ -1,11 +1,11 @@
 import { Component, EventEmitter, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { RouterLink, RouterLinkActive } from '@angular/router';
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, RouterLinkActive],
   template: `
     <!-- Main Header -->
     <div class="site-header">
@@ -26,9 +26,9 @@ import { RouterLink } from '@angular/router';
     <div class="sub-nav">
       <a routerLink="/" class="active-tab">الرئيسية</a>
       <a href="#">التعليمات</a>
-      <a href="#">جرب بنفسك (المعمل الافتراضي)</a>
-      <a href="#">غرفة الحوار</a>
-      <a href="#">البريد الإلكتروني</a>
+      <a routerLink="/lab">جرب بنفسك (المعمل الافتراضي)</a>
+      <a routerLink="/chat-room" routerLinkActive="active-tab">غرفة الحوار</a>
+      <a routerLink="/email" routerLinkActive="active-tab">البريد الإلكتروني</a>
       <a href="#">المنتدي</a>
       <a href="#" style="display:flex;align-items:center;gap:4px;">
         <span class="material-icons" style="font-size:14px;">search</span>

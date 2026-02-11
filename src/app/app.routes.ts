@@ -47,6 +47,14 @@ export const routes: Routes = [
                 loadComponent: () => import('./features/test-judging/test-judging.component').then(m => m.TestJudgingComponent)
             },
             {
+                path: 'email',
+                loadComponent: () => import('./features/email/email.component').then(m => m.EmailComponent)
+            },
+            {
+                path: 'chat-room',
+                loadComponent: () => import('./features/chat-room/chat-room.component').then(m => m.ChatRoomComponent)
+            },
+            {
                 path: 'lab',
                 loadComponent: () => import('./features/lab/lab.component').then(m => m.LabComponent)
             }
