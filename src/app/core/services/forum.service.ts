@@ -26,53 +26,60 @@ export class ForumService {
     private topics = signal<Topic[]>([
         {
             id: 1,
-            title: 'جدول الحقيقة (الصواب) Truth Table لبوابة (أو) OR',
-            author: 'م/ السيد محمد السيد',
-            date: '2014-03-14 15:21:38',
-            views: 6,
+            title: 'أسس التصميم في الفن الرقمي: التوازن والإيقاع',
+            author: 'أحمد عدنان ياسين',
+            date: '2024-02-12 10:30:00',
+            views: 45,
             isPinned: true,
-            replies: [],
+            replies: [
+                {
+                    id: 1,
+                    author: 'المعلم محمد أحمد',
+                    content: 'موضوع رائع يا أحمد. التوازن هو أساس أي عمل فني ناجح، خاصة في البيئة الرقمية.',
+                    date: '2024-02-12 11:00:00'
+                }
+            ],
             avatar: 'assets/avatars/admin.png'
         },
         {
             id: 2,
-            title: 'الرمز المنطقي لبوابة (أو) OR',
-            author: 'م/ السيد محمد السيد',
-            date: '2014-03-14 15:15:04',
-            views: 4,
+            title: 'استخدام النقطة والخط كعناصر تكوين في المعمل الافتراضي',
+            author: 'خالد (طالب)',
+            date: '2024-02-11 15:15:04',
+            views: 32,
             isPinned: true,
             replies: [],
-            avatar: 'assets/avatars/admin.png'
+            avatar: 'assets/avatars/student1.png'
         },
         {
             id: 3,
-            title: 'جدول الحقيقة (الصواب) Truth Table لبوابة (و) AND',
-            author: 'محمد أحمد محمود',
-            date: '2014-03-14 15:13:39',
-            views: 7,
+            title: 'كيفية تحقيق الانسجام اللوني في التصميمات الرقمية؟',
+            author: 'سارة محمد',
+            date: '2024-02-10 09:13:39',
+            views: 28,
             isPinned: false,
             replies: [],
-            avatar: 'assets/avatars/user1.png'
+            avatar: 'assets/avatars/student2.png'
         },
         {
             id: 4,
-            title: 'تنفيذ دائرة إلكترونية لتحقيق جدول الحقيقة لبوابة (و) AND باستخدام المفاتيح',
-            author: 'محمد أحمد محمود',
-            date: '2014-03-14 15:12:39',
-            views: 3,
+            title: 'تطبيقات الفن التشكيلي المعاصر باستخدام الأدوات الرقمية',
+            author: 'أستاذة ليلى علي',
+            date: '2024-02-09 14:12:39',
+            views: 56,
             isPinned: false,
             replies: [],
-            avatar: 'assets/avatars/user1.png'
+            avatar: 'assets/avatars/teacher1.png'
         },
         {
             id: 5,
-            title: 'تمثيل بوابة (و) AND في دائرة كهربية',
-            author: 'محمد أحمد محمود',
-            date: '2014-03-14 15:11:52',
-            views: 5,
+            title: 'الفرق بين الأشكال العضوية والهندسية في التصميم الاستكشافي',
+            author: 'يوسف حسن',
+            date: '2024-02-08 12:11:52',
+            views: 19,
             isPinned: false,
             replies: [],
-            avatar: 'assets/avatars/user1.png'
+            avatar: 'assets/avatars/student3.png'
         }
     ]);
 
