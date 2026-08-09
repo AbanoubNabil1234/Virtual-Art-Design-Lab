@@ -120,7 +120,7 @@ type ActiveWindow = 'slides' | 'video';
           <div class="window-topbar">
             <div class="window-meta">
               <span class="window-badge video">فيديو</span>
-              <span class="window-caption">virtual-lab-demo.mp4</span>
+              <span class="window-caption">فيديو تعريف المعمل الافتراضي</span>
             </div>
           </div>
 

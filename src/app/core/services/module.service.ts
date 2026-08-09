@@ -22,7 +22,7 @@ export class ModuleService {
                 (_, index) => `assets/lesson-blueprint-slides/image${index + 1}.png`
             ),
             videoUrl: 'assets/lesson-blueprint-video/lesson-one-demo.mp4',
-            videoName: 'VID-20260809-WA0041.mp4',
+            videoName: 'فيديو الدرس الأول: التصميم الفني',
             posterUrl: 'assets/lesson-blueprint-slides/image1.png'
         },
         {
@@ -67,7 +67,7 @@ export class ModuleService {
                 }
             ],
             videoUrl: 'assets/lesson-two/video/lesson-two-demo.mp4',
-            videoName: 'VID-20260809-WA0042.mp4',
+            videoName: 'فيديو الدرس الثاني: عناصر التصميم',
             posterUrl: 'assets/lesson-two/part-1/slide-01.png'
         },
         {
@@ -105,7 +105,7 @@ export class ModuleService {
                 }
             ],
             videoUrl: 'assets/lesson-three/video/lesson-three-demo.mp4',
-            videoName: 'VID-20260809-WA0043.mp4',
+            videoName: 'فيديو الدرس الثالث: عمليات التصميم',
             posterUrl: 'assets/lesson-three/part-1/slide-01.png'
         },
         {
