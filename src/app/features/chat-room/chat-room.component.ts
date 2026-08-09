@@ -86,7 +86,7 @@ interface ChatMessage {
             <div class="flex items-center gap-4">
               <div class="flex items-center gap-2 bg-green-50 text-green-700 px-3 py-1 rounded-full text-sm font-bold border border-green-100">
                 <span class="w-2 h-2 bg-green-500 rounded-full animate-ping"></span>
-                <span>5 متصلين</span>
+                <span>0 متصلين</span>
               </div>
               <button (click)="isConfiguring = true" class="text-red-500 hover:bg-red-50 p-2 rounded-full transition-colors" title="خروج للإعدادات">
                 <span class="material-icons">logout</span>
@@ -95,7 +95,7 @@ interface ChatMessage {
           </div>
 
           <!-- Messages Area -->
-          <div class="flex-1 p-4 md:p-6 overflow-y-auto space-y-6 scrollbar-thin" 
+          <div class="messages-area flex-1 p-4 md:p-6 overflow-y-auto space-y-6 scrollbar-thin"
                [style.font-family]="roomConfig.fontFamily" 
                [style.font-size]="roomConfig.fontSize" 
                [style.color]="roomConfig.fontColor">
@@ -211,26 +211,10 @@ export class ChatRoomComponent {
     fontColor: '#000000'
   };
 
-  // Mock Messages
-  // Mock Messages
-  messages = signal<ChatMessage[]>([
-    { id: 1, sender: 'المعلم محمد أحمد', role: 'teacher', text: 'السلام عليكم ورحمة الله وبركاته. أهلاً بكم في غرفة الحوار.', time: '10:00 ص' },
-    { id: 2, sender: 'خالد (طالب)', role: 'student', text: 'وعليكم السلام يا أستاذ. هل يمكننا مناقشة أنواع النقاط الرقمية؟', time: '10:02 ص' },
-  ]);
+  messages = signal<ChatMessage[]>([]);
 
   enterRoom() {
     this.isConfiguring = false;
-    // Add system message
-    this.messages.update(msgs => [
-      ...msgs,
-      {
-        id: Date.now(),
-        sender: 'System',
-        role: 'system',
-        text: 'دخل أحمد عدنان ياسين إلى الغرفة',
-        time: new Date().toLocaleTimeString('ar-EG')
-      }
-    ]);
   }
 
   sendMessage() {
