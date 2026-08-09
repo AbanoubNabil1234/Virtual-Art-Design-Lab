@@ -1,7 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ContentService } from '../../core/services/content.service';
-import { ImageKitVideos } from '../../core/config/imagekit.config';
 
 type ActiveWindow = 'slides' | 'video';
 
@@ -131,7 +130,7 @@ type ActiveWindow = 'slides' | 'video';
               controls
               preload="metadata"
               poster="assets/virtual-lab-slides/image1.png">
-              <source [src]="virtualLabVideoUrl" type="video/mp4">
+              <source src="assets/virtual-lab-video/virtual-lab-demo.mp4" type="video/mp4">
               المتصفح لا يدعم تشغيل الفيديو.
             </video>
           </div>
@@ -446,7 +445,6 @@ export class VirtualLabComponent {
   pageData = this.contentService.getPage('virtual-lab');
   activeWindow = signal<ActiveWindow>('slides');
   currentPage = signal(1);
-  readonly virtualLabVideoUrl = ImageKitVideos.virtualLab;
   readonly slides = Array.from({ length: 14 }, (_, index) => `assets/virtual-lab-slides/image${index + 1}.png`);
   readonly totalPages = this.slides.length;
 

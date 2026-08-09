@@ -43,7 +43,7 @@ Thumbs.db
 .vercel
 .env*.local
 
-# Large media — host videos on ImageKit instead of Git
+# Large local media (kept on disk, not pushed to Git)
 *.mp4
 *.webm
 *.mov

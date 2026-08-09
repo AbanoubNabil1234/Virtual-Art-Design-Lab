@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core';
 import { DesignModule } from '../models/module.model';
-import { ImageKitVideos } from '../config/imagekit.config';
 
 @Injectable({
     providedIn: 'root'
@@ -22,8 +21,8 @@ export class ModuleService {
                 { length: 11 },
                 (_, index) => `assets/lesson-blueprint-slides/image${index + 1}.png`
             ),
-            videoUrl: ImageKitVideos.lessonOne,
-            videoName: 'lesson-one-demo.mp4',
+            videoUrl: 'assets/lesson-blueprint-video/lesson-one-demo.mp4',
+            videoName: 'VID-20260809-WA0041.mp4',
             posterUrl: 'assets/lesson-blueprint-slides/image1.png'
         },
         {
@@ -67,8 +66,8 @@ export class ModuleService {
                     slides: this.numberedSlides('assets/lesson-two/summary', 12)
                 }
             ],
-            videoUrl: ImageKitVideos.lessonTwo,
-            videoName: 'lesson-two-demo.mp4',
+            videoUrl: 'assets/lesson-two/video/lesson-two-demo.mp4',
+            videoName: 'VID-20260809-WA0042.mp4',
             posterUrl: 'assets/lesson-two/part-1/slide-01.png'
         },
         {
@@ -105,8 +104,8 @@ export class ModuleService {
                     slides: this.numberedSlides('assets/lesson-three/summary', 15)
                 }
             ],
-            videoUrl: ImageKitVideos.lessonThree,
-            videoName: 'lesson-three-demo.mp4',
+            videoUrl: 'assets/lesson-three/video/lesson-three-demo.mp4',
+            videoName: 'VID-20260809-WA0043.mp4',
             posterUrl: 'assets/lesson-three/part-1/slide-01.png'
         },
         {
@@ -143,6 +142,8 @@ export class ModuleService {
                     slides: this.numberedSlides('assets/lesson-four/summary', 14)
                 }
             ],
+            videoUrl: 'assets/lesson-four/video/lesson-four-demo.mp4',
+            videoName: 'فيديو الدرس الرابع: أسس التصميم',
             posterUrl: 'assets/lesson-four/part-1/slide-01.png'
         },
         {
@@ -179,6 +180,8 @@ export class ModuleService {
                     slides: this.numberedSlides('assets/lesson-five/summary', 15)
                 }
             ],
+            videoUrl: 'assets/lesson-five/video/lesson-five-demo.mp4',
+            videoName: 'فيديو الدرس الخامس: الأسس الإنشائية للتصميم',
             posterUrl: 'assets/lesson-five/part-1/slide-01.png'
         },
         {
@@ -215,6 +218,8 @@ export class ModuleService {
                     slides: this.numberedSlides('assets/lesson-six/summary', 15)
                 }
             ],
+            videoUrl: 'assets/lesson-six/video/lesson-six-demo.mp4',
+            videoName: 'فيديو الدرس السادس: التصميم الرقمي',
             posterUrl: 'assets/lesson-six/part-1/slide-01.png'
         }
     ];
