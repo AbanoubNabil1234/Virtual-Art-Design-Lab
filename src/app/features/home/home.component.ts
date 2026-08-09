@@ -9,7 +9,7 @@ import { CommonModule } from '@angular/common';
     <div class="flex flex-col items-center justify-center text-center py-8">
       
       <h1 class="animate-fade-in-up text-3xl md:text-4xl font-bold text-gray-900 mb-4 px-4">
-        المعمل الافتراضي للتصميم في التربية الفنية – المرحلة الثانوية
+        المعمل الافتراضي لتنمية مفاهيم ومهارات التصميم لدى طلاب المرحلة الثانوية
       </h1>
 
       <p class="animate-fade-in-up delay-100 text-lg md:text-xl text-gray-600 max-w-3xl leading-relaxed mb-8 px-6">

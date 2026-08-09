@@ -13,8 +13,8 @@ import { GlobalSearchComponent } from '../global-search/global-search.component'
       <div class="header-inner">
         <div class="flex items-center justify-between">
           <div>
-            <h1 class="header-title">المعمل الافتراضي للتصميم في التربية الفنية – المرحلة الثانوية</h1>
-            <div class="header-user">Virtual Art Design Lab</div>
+            <h1 class="header-title">المعمل الافتراضي لتنمية مفاهيم ومهارات التصميم لدى طلاب المرحلة الثانوية</h1>
+            <div class="header-user">تنمية مفاهيم ومهارات التصميم</div>
           </div>
           <button (click)="toggleMenu.emit()" 
                   class="md:hidden p-2 text-gray-400 hover:text-white transition-colors" 

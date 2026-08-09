@@ -287,6 +287,7 @@ export class QuestionBankComponent {
 
     submitQuiz() {
         this.isSubmitted = true;
+        this.isFinished = true;
         this.score = 0;
         this.activeQuestions().forEach(q => {
             if (this.userAnswers[q.id] === q.correctAnswer) {
@@ -304,6 +305,7 @@ export class QuestionBankComponent {
     private resetQuizState() {
         this.userAnswers = {};
         this.isSubmitted = false;
+        this.isFinished = false;
         this.score = 0;
     }
 }

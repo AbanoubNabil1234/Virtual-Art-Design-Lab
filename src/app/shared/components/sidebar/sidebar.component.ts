@@ -15,9 +15,7 @@ import { ModuleService } from '../../../core/services/module.service';
       <!-- 1. General Objectives -->
       <a routerLink="/general-goals" routerLinkActive="active" class="sidebar-btn">الأهداف العامـــة</a>
 
-      <!-- Basic Concepts -->
-      <div class="sidebar-label">مصطلحات أساسية</div>
-      <a routerLink="/definition/virtual-lab" routerLinkActive="active" class="sidebar-btn">المعمل الافتراضي</a>
+      <a routerLink="/definition/virtual-lab" routerLinkActive="active" class="sidebar-btn">تعريف المعمل الافتراضي</a>
       <a routerLink="/definition/concepts" routerLinkActive="active" class="sidebar-btn">مفاهيم التصميم</a>
       <a routerLink="/definition/skills" routerLinkActive="active" class="sidebar-btn">مهارات التصميم</a>
       
