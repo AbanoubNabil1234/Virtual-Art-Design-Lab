@@ -47,6 +47,7 @@ Thumbs.db
 *.mp4
 *.webm
 *.mov
+!src/assets/**/*.mp4
 /معمل/
 
 # Temp extract / tooling artifacts
