@@ -1,7 +1,8 @@
-import { Component, inject } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { TestsService } from '../../core/services/tests.service';
+import { PerformanceTestService } from '../../core/services/performance-test.service';
 
 @Component({
   selector: 'app-tests-hub',
@@ -36,11 +37,16 @@ import { TestsService } from '../../core/services/tests.service';
 })
 export class TestsHubComponent {
   readonly testsService = inject(TestsService);
+  readonly perfTestService = inject(PerformanceTestService);
 
   preResult = this.testsService.preTest;
   postResult = this.testsService.postTest;
   isPostUnlocked = this.testsService.isPostUnlocked;
   improvement = this.testsService.scoreImprovement;
+
+  perfCompletedCount = this.perfTestService.completedCount;
+  isPerfCompleted = this.perfTestService.isAllCompleted;
+  perfTotalTasks = computed(() => this.perfTestService.tasks().length);
 
   get preInProgress() {
     return this.testsService.getInProgress('pre');
