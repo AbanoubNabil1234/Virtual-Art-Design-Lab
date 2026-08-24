@@ -1,10 +1,32 @@
-import { Injectable } from '@angular/core';
+import { Injectable, computed, effect, signal } from '@angular/core';
 import { DesignModule } from '../models/module.model';
+
+export interface ModuleProgress {
+  completed: boolean;
+  score: number;
+  totalQuestions: number;
+  completedAt?: string;
+}
+
+export type ModuleProgressState = Record<string, ModuleProgress>;
+
+export const MODULE_CATEGORY_MAP: Record<string, string> = {
+  'blueprint-to-canvas': 'الدرس الأول: التصميم الفني ومفاهيمه الأساسية',
+  'lesson-two-design-elements': 'الدرس الثاني: عناصر التصميم',
+  'lesson-three-design-operations': 'الدرس الثالث: عمليات التصميم',
+  'lesson-four-design-principles': 'الدرس الرابع: أسس التصميم',
+  'lesson-five-structural-principles': 'الدرس الخامس: الأسس الإنشائية للتصميم',
+  'lesson-six-digital-design': 'الدرس السادس: التصميم الرقمي'
+};
 
 @Injectable({
     providedIn: 'root'
 })
 export class ModuleService {
+    private readonly STORAGE_KEY = 'virtual_art_lab_modules_progress_v1';
+
+    readonly progressState = signal<ModuleProgressState>(this.loadProgressFromStorage());
+
     private readonly modules: DesignModule[] = [
         {
             id: 'blueprint-to-canvas',
@@ -224,6 +246,28 @@ export class ModuleService {
         }
     ];
 
+    constructor() {
+        effect(() => {
+            try {
+                localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.progressState()));
+            } catch (e) {
+                console.error('Failed to save module progress:', e);
+            }
+        });
+    }
+
+    private loadProgressFromStorage(): ModuleProgressState {
+        try {
+            const saved = localStorage.getItem(this.STORAGE_KEY);
+            if (saved) {
+                return JSON.parse(saved);
+            }
+        } catch (e) {
+            console.error('Failed to load module progress:', e);
+        }
+        return {};
+    }
+
     private numberedSlides(folder: string, count: number): string[] {
         return Array.from(
             { length: count },
@@ -237,5 +281,67 @@ export class ModuleService {
 
     getModuleById(id: string): DesignModule | undefined {
         return this.modules.find((module) => module.id === id);
+    }
+
+    getCategoryForModule(moduleId: string): string {
+        return MODULE_CATEGORY_MAP[moduleId] || '';
+    }
+
+    /**
+     * Check if a module is unlocked.
+     * First module ('blueprint-to-canvas') is always unlocked.
+     * Subsequent modules require the previous module to be completed.
+     */
+    isModuleUnlocked(moduleId: string): boolean {
+        const index = this.modules.findIndex((m) => m.id === moduleId);
+        if (index <= 0) return true; // First module is unlocked
+        const prevModule = this.modules[index - 1];
+        const prevProgress = this.progressState()[prevModule.id];
+        return !!prevProgress && prevProgress.completed;
+    }
+
+    getModuleLockReason(moduleId: string): string {
+        if (this.isModuleUnlocked(moduleId)) return '';
+        const index = this.modules.findIndex((m) => m.id === moduleId);
+        if (index > 0) {
+            const prevModule = this.modules[index - 1];
+            return `يلزم دراسة وإجابة أسئلة "${prevModule.titleAr}" أولاً لفتح هذا الدرس.`;
+        }
+        return 'هذا الدرس مغلق حالياً.';
+    }
+
+    getModuleProgress(moduleId: string): ModuleProgress | null {
+        return this.progressState()[moduleId] || null;
+    }
+
+    setModuleCompleted(moduleId: string, score: number, totalQuestions: number): { unlockedNext: boolean; nextModule: DesignModule | null } {
+        let unlockedNext = false;
+        let nextModule: DesignModule | null = null;
+
+        const index = this.modules.findIndex((m) => m.id === moduleId);
+        if (index >= 0 && index < this.modules.length - 1) {
+            unlockedNext = true;
+            nextModule = this.modules[index + 1];
+        }
+
+        this.progressState.update((state) => ({
+            ...state,
+            [moduleId]: {
+                completed: true,
+                score,
+                totalQuestions,
+                completedAt: new Date().toISOString()
+            }
+        }));
+
+        return { unlockedNext, nextModule };
+    }
+
+    getNextModule(moduleId: string): DesignModule | null {
+        const index = this.modules.findIndex((m) => m.id === moduleId);
+        if (index >= 0 && index < this.modules.length - 1) {
+            return this.modules[index + 1];
+        }
+        return null;
     }
 }

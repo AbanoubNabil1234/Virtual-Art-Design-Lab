@@ -1,6 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { ModuleService } from '../../../core/services/module.service';
 
 @Component({
@@ -19,8 +19,8 @@ import { ModuleService } from '../../../core/services/module.service';
       <a routerLink="/definition/concepts" routerLinkActive="active" class="sidebar-btn">مفاهيم التصميم</a>
       <a routerLink="/definition/skills" routerLinkActive="active" class="sidebar-btn">مهارات التصميم</a>
       
-      <!-- 2. Pre-Achievement Test -->
-      <a routerLink="/pre-test" routerLinkActive="active" class="sidebar-btn">الاختبار التحصيلي القبلي</a>
+      <!-- 2. Achievement Tests (Pre & Post) -->
+      <a routerLink="/tests" routerLinkActive="active" class="sidebar-btn">الاختبارات</a>
       
       <!-- 3. Performance Test -->
       <a routerLink="/performance-test" routerLinkActive="active" class="sidebar-btn">الاختبار الأدائي (ب)</a>
@@ -29,21 +29,30 @@ import { ModuleService } from '../../../core/services/module.service';
       <button class="sidebar-btn flex justify-between items-center w-full" 
               (click)="toggleLessons()"
               [class.active]="showLessons()">
-        <span>قائمـــة الــدروس</span>
+        <span>قائمـــة الــدروس (الفتح المتسلسل)</span>
         <span class="material-icons transition-transform duration-300" [class.rotate-180]="showLessons()">
           expand_more
         </span>
       </button>
 
       <div *ngIf="showLessons()" class="lessons-container">
-        <a *ngFor="let mod of modules"
-           [routerLink]="['/module', mod.id]"
-           routerLinkActive="active"
-           data-sound="lessonOpen"
-           class="sidebar-btn-sub">
-          <span class="material-icons text-sm opacity-50 ml-2">article</span>
-          {{ mod.titleAr }}
-        </a>
+        <button *ngFor="let mod of modules"
+                (click)="onModuleClick(mod.id)"
+                data-sound="lessonOpen"
+                class="sidebar-btn-sub w-full text-right flex items-center justify-between transition-colors"
+                [class.opacity-60]="!moduleService.isModuleUnlocked(mod.id)">
+          <div class="flex items-center gap-1.5 overflow-hidden">
+            <span class="material-icons text-sm opacity-50 flex-shrink-0">article</span>
+            <span class="truncate text-xs font-bold">{{ mod.titleAr }}</span>
+          </div>
+
+          <div class="flex items-center gap-1 flex-shrink-0">
+            <span *ngIf="moduleService.getModuleProgress(mod.id)?.completed"
+                  class="material-icons text-xs text-emerald-400" title="تم اجتياز اختبار الدرس">check_circle</span>
+            <span *ngIf="!moduleService.isModuleUnlocked(mod.id)"
+                  class="material-icons text-xs text-amber-400" title="درس مغلق">lock</span>
+          </div>
+        </button>
       </div>
 
       <!-- Tests & Utilities -->
@@ -72,12 +81,21 @@ import { ModuleService } from '../../../core/services/module.service';
 })
 export class SidebarComponent {
   moduleService = inject(ModuleService);
-  modules = this.moduleService.getModules();
+  private router = inject(Router);
 
-  // Signal for toggling lessons list
+  modules = this.moduleService.getModules();
   showLessons = signal(false);
 
   toggleLessons() {
     this.showLessons.update(value => !value);
+  }
+
+  onModuleClick(moduleId: string) {
+    if (this.moduleService.isModuleUnlocked(moduleId)) {
+      this.router.navigate(['/module', moduleId]);
+    } else {
+      const reason = this.moduleService.getModuleLockReason(moduleId);
+      alert(`🔒 هذا الدرس مغلق حالياً!\n\n${reason}`);
+    }
   }
 }

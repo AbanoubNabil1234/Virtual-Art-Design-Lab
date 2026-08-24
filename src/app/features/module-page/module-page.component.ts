@@ -1,8 +1,9 @@
 import { AfterViewInit, Component, HostListener, computed, effect, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ModuleService } from '../../core/services/module.service';
+import { QuestionBankService, Question } from '../../core/services/question-bank.service';
 import { ButtonSoundService } from '../../core/services/button-sound.service';
 import type { ModuleSlideDeck } from '../../core/models/module.model';
 
@@ -11,870 +12,891 @@ type LessonWindow = 'slides' | 'video';
 @Component({
   selector: 'app-module-page',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterLink],
   template: `
     @if (module(); as mod) {
       <div class="lesson-page">
-        <div class="lesson-hero" [class.opened]="opened()">
-          <div class="lesson-copy">
-            <span class="lesson-kicker">{{ mod.titleAr }}</span>
-            <h1>{{ mod.titleAr }}</h1>
-            <p>{{ mod.descriptionAr }}</p>
+
+        <!-- LOCKED LESSON OVERLAY (IF ACCESSING A LOCKED MODULE) -->
+        @if (!isUnlocked()) {
+          <div class="max-w-2xl mx-auto my-12 p-8 bg-white border-2 border-amber-400 rounded-3xl shadow-xl text-center animate-scale-in">
+            <span class="material-icons text-7xl text-amber-600 mb-3">lock</span>
+            <h2 class="text-2xl font-black text-gray-900 mb-2">هذا الدرس مغلق حالياً 🔒</h2>
+            <p class="text-base text-gray-600 mb-6 leading-relaxed">
+              {{ moduleService.getModuleLockReason(mod.id) }}
+            </p>
+
+            <div class="flex flex-wrap justify-center gap-3">
+              <a routerLink="/" class="btn-primary bg-amber-800 hover:bg-amber-900 px-6 py-2.5 text-sm font-bold flex items-center gap-2">
+                <span class="material-icons text-base">home</span>
+                الرئيسية
+              </a>
+            </div>
+          </div>
+        } @else {
+
+          <!-- UNLOCKED NEXT MODULE TOAST BANNER -->
+          @if (unlockedToastMessage()) {
+            <div class="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-emerald-700 text-white px-6 py-3.5 rounded-2xl shadow-2xl border-2 border-emerald-300 font-bold text-sm md:text-base flex items-center gap-3 animate-bounce">
+              <span class="material-icons text-2xl text-emerald-200">lock_open</span>
+              <span>{{ unlockedToastMessage() }}</span>
+              <button (click)="unlockedToastMessage.set(null)" class="text-xs bg-emerald-800 hover:bg-emerald-900 px-2 py-1 rounded-lg">✕</button>
+            </div>
+          }
+
+          <!-- LESSON HERO -->
+          <div class="lesson-hero" [class.opened]="opened()">
+            <div class="lesson-copy">
+              <span class="lesson-kicker">{{ mod.titleAr }}</span>
+              <h1>{{ mod.titleAr }}</h1>
+              <p>{{ mod.descriptionAr }}</p>
+
+              @if (moduleProgress(); as prog) {
+                <div class="mt-3 inline-flex items-center gap-2 px-3.5 py-1 bg-emerald-100 text-emerald-900 font-black text-xs rounded-full border border-emerald-300">
+                  <span class="material-icons text-base text-emerald-700">check_circle</span>
+                  <span>تم اجتياز الاختبار (النتيجة: {{ prog.score }} / {{ prog.totalQuestions }})</span>
+                </div>
+              }
+            </div>
+
+            <div class="lesson-stat">
+              @if (activeWindow() === 'video') {
+                <span class="material-icons">movie</span>
+                <small>فيديو الدرس</small>
+              } @else {
+                <span>{{ currentPage() }}</span>
+                <small>من {{ totalSlides() }}</small>
+              }
+            </div>
           </div>
 
-          <div class="lesson-stat">
-            @if (activeWindow() === 'video') {
-              <span class="material-icons">movie</span>
-              <small>فيديو الدرس</small>
-            } @else {
-              <span>{{ currentPage() }}</span>
-              <small>من {{ totalSlides() }}</small>
-            }
-          </div>
-        </div>
-
-        @if (hasSlides() || hasVideo()) {
-          <div class="lesson-window-switcher">
-            @for (deck of slideDecks(); track deck.id) {
-              <button
-                type="button"
-                class="window-switch"
-                data-sound="select"
-                [class.active]="isActiveDeck(deck.id)"
-                (click)="setActiveDeck(deck.id)">
-                <span class="material-icons">slideshow</span>
-                <span class="window-switch-text">
-                  <strong>{{ deck.titleAr }}</strong>
-                  <small>{{ deck.subtitleAr }}</small>
-                </span>
-              </button>
-            }
-
-            @if (hasVideo()) {
-              <button
-                type="button"
-                class="window-switch"
-                data-sound="select"
-                [class.active]="activeWindow() === 'video'"
-                (click)="setActiveWindow('video')">
-                <span class="material-icons">smart_display</span>
-                <span class="window-switch-text">
-                  <strong>فيديو الدرس</strong>
-                  <small>{{ mod.videoName || 'فيديو تطبيقي' }}</small>
-                </span>
-              </button>
-            }
-          </div>
-        }
-
-        @if (hasSlides() && activeWindow() === 'slides') {
-          @if (activeDeck(); as deck) {
-            <section class="slide-player" [class.lesson-opened]="opened()">
-              <div class="player-top">
-                <div class="player-title">
-                  <span class="material-icons">auto_awesome_motion</span>
-                  <div>
-                    <strong>{{ deck.fileName }}</strong>
+          <!-- WINDOW SWITCHER (SLIDES / VIDEO) -->
+          @if (hasSlides() || hasVideo()) {
+            <div class="lesson-window-switcher">
+              @for (deck of slideDecks(); track deck.id) {
+                <button
+                  type="button"
+                  class="window-switch"
+                  data-sound="select"
+                  [class.active]="isActiveDeck(deck.id)"
+                  (click)="setActiveDeck(deck.id)">
+                  <span class="material-icons">slideshow</span>
+                  <span class="window-switch-text">
+                    <strong>{{ deck.titleAr }}</strong>
                     <small>{{ deck.subtitleAr }}</small>
+                  </span>
+                </button>
+              }
+
+              @if (hasVideo()) {
+                <button
+                  type="button"
+                  class="window-switch"
+                  data-sound="select"
+                  [class.active]="activeWindow() === 'video'"
+                  (click)="setActiveWindow('video')">
+                  <span class="material-icons">smart_display</span>
+                  <span class="window-switch-text">
+                    <strong>فيديو الدرس</strong>
+                    <small>{{ mod.videoName || 'فيديو تطبيقي' }}</small>
+                  </span>
+                </button>
+              }
+            </div>
+          }
+
+          <!-- SLIDE PLAYER -->
+          @if (hasSlides() && activeWindow() === 'slides') {
+            @if (activeDeck(); as deck) {
+              <section class="slide-player" [class.lesson-opened]="opened()">
+                <div class="player-top">
+                  <div class="player-title">
+                    <span class="material-icons">auto_awesome_motion</span>
+                    <div>
+                      <strong>{{ deck.fileName }}</strong>
+                      <small>{{ deck.subtitleAr }}</small>
+                    </div>
+                  </div>
+
+                  <div class="player-count">
+                    <span>شريحة</span>
+                    <strong>{{ currentPage() }}</strong>
+                    <span class="player-count-total">/ {{ totalSlides() }}</span>
                   </div>
                 </div>
 
-                <div class="player-count">
-                  <span>شريحة</span>
-                  <strong>{{ currentPage() }}</strong>
-                  <span class="player-count-total">/ {{ totalSlides() }}</span>
+                <div class="progress-track">
+                  <span [style.width.%]="progressPercent()"></span>
                 </div>
-              </div>
 
-              <div class="progress-track">
-                <span [style.width.%]="progressPercent()"></span>
-              </div>
+                <div class="stage-wrap">
+                  <button
+                    type="button"
+                    class="stage-nav stage-nav-right"
+                    data-sound="prev"
+                    (click)="prevSlide()"
+                    [disabled]="safeIndex() === 0"
+                    aria-label="الشريحة السابقة">
+                    <span class="material-icons">chevron_right</span>
+                  </button>
 
-              <div class="stage-wrap">
+                  <div class="stage-viewport" (click)="nextSlide()">
+                    <img [src]="activeSlideUrl()" [alt]="mod.titleAr" class="stage-image" />
+                  </div>
+
+                  <button
+                    type="button"
+                    class="stage-nav stage-nav-left"
+                    data-sound="next"
+                    (click)="nextSlide()"
+                    [disabled]="safeIndex() >= totalSlides() - 1"
+                    aria-label="الشريحة التالية">
+                    <span class="material-icons">chevron_left</span>
+                  </button>
+                </div>
+
+                <div class="player-controls">
+                  <button
+                    type="button"
+                    class="btn-control"
+                    data-sound="prev"
+                    (click)="prevSlide()"
+                    [disabled]="safeIndex() === 0">
+                    <span class="material-icons">arrow_forward</span>
+                    السابقة
+                  </button>
+
+                  <!-- THE ONE SINGLE QUIZ BUTTON -->
+                  <button
+                    type="button"
+                    class="btn-quiz-single"
+                    data-sound="click"
+                    (click)="openQuizModal()">
+                    <span class="material-icons text-base">quiz</span>
+                    <span>{{ moduleProgress()?.completed ? 'عرض نتيجة وإجابات الاختبار 📝' : 'دخول اختبار وتقويم الدرس 📝' }}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    class="btn-control primary"
+                    data-sound="next"
+                    (click)="nextSlide()"
+                    [disabled]="safeIndex() >= totalSlides() - 1">
+                    التالية
+                    <span class="material-icons">arrow_back</span>
+                  </button>
+                </div>
+              </section>
+            }
+          }
+
+          <!-- VIDEO PLAYER -->
+          @if (hasVideo() && activeWindow() === 'video') {
+            <section class="video-player-wrap border-2 border-amber-900/20 rounded-3xl p-4 bg-white shadow-md my-6 text-center">
+              <h3 class="text-lg font-bold text-gray-900 mb-3 text-right flex items-center gap-2">
+                <span class="material-icons text-amber-700">smart_display</span>
+                {{ mod.videoName || 'فيديو شرح وتطبيق الدرس' }}
+              </h3>
+              <video [src]="mod.videoUrl" controls [poster]="mod.posterUrl" class="w-full rounded-2xl shadow-sm max-h-[500px] mb-4">
+                متصفحك لا يدعم تشغيل الفيديو.
+              </video>
+
+              <!-- THE ONE SINGLE QUIZ BUTTON UNDER VIDEO -->
+              <button
+                type="button"
+                class="btn-quiz-single"
+                data-sound="click"
+                (click)="openQuizModal()">
+                <span class="material-icons text-base">quiz</span>
+                <span>{{ moduleProgress()?.completed ? 'عرض نتيجة وإجابات الاختبار 📝' : 'دخول اختبار وتقويم الدرس 📝' }}</span>
+              </button>
+            </section>
+          }
+
+          <!-- DEDICATED QUIZ MODAL / DIALOG (يفتح عند الضغط على الزر الوحيد) -->
+          @if (showQuizModal()) {
+            <div class="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center p-3 md:p-6 overflow-y-auto animate-fade-in">
+              
+              <div class="bg-white border-2 border-amber-900/30 rounded-3xl max-w-3xl w-full max-h-[90vh] overflow-y-auto p-6 md:p-8 shadow-2xl text-right relative my-auto">
+                
+                <!-- Close Button -->
                 <button
                   type="button"
-                  class="stage-nav stage-nav-right"
-                  data-sound="prev"
-                  (click)="prevSlide()"
-                  [disabled]="safeIndex() === 0"
-                  aria-label="الشريحة السابقة">
-                  <span class="material-icons">chevron_right</span>
+                  (click)="closeQuizModal()"
+                  class="absolute top-4 left-4 w-9 h-9 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 flex items-center justify-center font-bold text-base transition-colors z-10">
+                  ✕
                 </button>
 
-                <div class="slide-stage" [class.stage-pulse]="animationFlip()">
-                  @if (animationFlip()) {
-                    <img
-                      class="slide-image"
-                      [class.enter-next]="slideDirection() === 'next'"
-                      [class.enter-prev]="slideDirection() === 'prev'"
-                      [src]="currentSlide()"
-                      [alt]="'شريحة رقم ' + currentPage()">
-                  } @else {
-                    <img
-                      class="slide-image"
-                      [class.enter-next]="slideDirection() === 'next'"
-                      [class.enter-prev]="slideDirection() === 'prev'"
-                      [src]="currentSlide()"
-                      [alt]="'شريحة رقم ' + currentPage()">
+                <!-- Modal Header -->
+                <div class="border-b border-gray-200 pb-4 mb-6">
+                  <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-100 text-amber-900 font-bold text-xs rounded-full border border-amber-200 mb-2">
+                    <span class="material-icons text-sm">quiz</span>
+                    بنك أسئلة الدرس
+                  </div>
+                  <h2 class="text-2xl font-black text-gray-900 m-0">اختبار وتقويم الدرس: {{ mod.titleAr }}</h2>
+                  <p class="text-xs text-gray-500 m-0 mt-1">أجب على جميع الأسئلة ثم اضغط تسليم الاختبار لفتح الدرس التالي</p>
+
+                  @if (isQuizSubmitted()) {
+                    <div class="mt-3 bg-emerald-50 border-2 border-emerald-300 px-4 py-2 rounded-xl inline-flex items-center gap-3">
+                      <span class="text-xs text-emerald-800 font-bold">النتيجة النهائية:</span>
+                      <span class="text-xl font-black text-emerald-700">{{ quizScore() }} / {{ lessonQuestions().length }}</span>
+                    </div>
                   }
                 </div>
 
-                <button
-                  type="button"
-                  class="stage-nav stage-nav-left"
-                  data-sound="next"
-                  (click)="nextSlide()"
-                  [disabled]="safeIndex() === totalSlides() - 1"
-                  aria-label="الشريحة التالية">
-                  <span class="material-icons">chevron_left</span>
-                </button>
-              </div>
+                <!-- QUESTIONS LIST -->
+                <div class="space-y-6">
+                  @for (q of lessonQuestions(); track q.id; let i = $index) {
+                    <div class="question-card border-2 rounded-2xl p-5 transition-all"
+                         [class.border-gray-200]="!isQuizSubmitted()"
+                         [class.border-emerald-300]="isQuizSubmitted() && isAnswerCorrect(q)"
+                         [class.border-red-300]="isQuizSubmitted() && !isAnswerCorrect(q)">
+                      
+                      <div class="flex justify-between items-center mb-3">
+                        <span class="px-3 py-1 bg-amber-900 text-white font-bold text-xs rounded-lg">
+                          السؤال {{ i + 1 }} من {{ lessonQuestions().length }}
+                        </span>
 
-              <div class="thumbs-strip">
-                @for (slide of currentSlides(); track slide; let i = $index) {
-                  <button
-                    type="button"
-                    class="thumb"
-                    data-sound="select"
-                    [class.active]="safeIndex() === i"
-                    (click)="goToSlide(i)">
-                    <img [src]="slide" [alt]="'مصغر شريحة ' + (i + 1)">
-                    <span>{{ i + 1 }}</span>
-                  </button>
-                }
-              </div>
-            </section>
-          }
-        }
+                        <span class="text-xs font-bold px-2.5 py-0.5 rounded-full"
+                              [class.bg-amber-100]="q.type === 'mcq'"
+                              [class.text-amber-800]="q.type === 'mcq'"
+                              [class.bg-blue-100]="q.type === 'true-false'"
+                              [class.text-blue-800]="q.type === 'true-false'">
+                          {{ q.type === 'mcq' ? 'اختيار من متعدد' : 'صواب / خطأ' }}
+                        </span>
+                      </div>
 
-        @if (hasVideo() && activeWindow() === 'video') {
-          <section class="slide-player video-player" [class.lesson-opened]="opened()">
-            <div class="player-top">
-              <div class="player-title">
-                <span class="material-icons">movie</span>
-                <div>
-                  <strong>{{ mod.videoName || 'فيديو الدرس' }}</strong>
-                  <small>فيديو تطبيقي داخل المعمل الافتراضي</small>
+                      <p class="text-base font-bold text-gray-900 leading-relaxed mb-4">{{ q.text }}</p>
+
+                      <!-- OPTIONS -->
+                      <div class="options-grid space-y-2">
+                        @if (q.type === 'mcq') {
+                          @for (opt of q.options; track opt) {
+                            <button
+                              type="button"
+                              class="option-btn text-right w-full p-3.5 rounded-xl border-2 font-bold text-sm transition-all flex items-center justify-between"
+                              [class.border-amber-700]="userAnswers[q.id] === opt && !isQuizSubmitted()"
+                              [class.bg-amber-50]="userAnswers[q.id] === opt && !isQuizSubmitted()"
+                              [class.border-emerald-600]="isQuizSubmitted() && opt === q.correctAnswer"
+                              [class.bg-emerald-50]="isQuizSubmitted() && opt === q.correctAnswer"
+                              [class.text-emerald-900]="isQuizSubmitted() && opt === q.correctAnswer"
+                              [class.border-red-500]="isQuizSubmitted() && userAnswers[q.id] === opt && opt !== q.correctAnswer"
+                              [class.bg-red-50]="isQuizSubmitted() && userAnswers[q.id] === opt && opt !== q.correctAnswer"
+                              [disabled]="isQuizSubmitted()"
+                              (click)="selectAnswer(q.id, opt)">
+                              <span>{{ opt }}</span>
+                              @if (isQuizSubmitted() && opt === q.correctAnswer) {
+                                <span class="material-icons text-emerald-600 text-lg">check_circle</span>
+                              }
+                              @if (isQuizSubmitted() && userAnswers[q.id] === opt && opt !== q.correctAnswer) {
+                                <span class="material-icons text-red-500 text-lg">cancel</span>
+                              }
+                            </button>
+                          }
+                        } @else if (q.type === 'true-false') {
+                          <div class="grid grid-cols-2 gap-3">
+                            <button
+                              type="button"
+                              class="option-btn p-3.5 rounded-xl border-2 font-bold text-sm text-center transition-all flex items-center justify-center gap-2"
+                              [class.border-amber-700]="userAnswers[q.id] === true && !isQuizSubmitted()"
+                              [class.bg-amber-50]="userAnswers[q.id] === true && !isQuizSubmitted()"
+                              [class.border-emerald-600]="isQuizSubmitted() && q.correctAnswer === true"
+                              [class.bg-emerald-50]="isQuizSubmitted() && q.correctAnswer === true"
+                              [class.text-emerald-900]="isQuizSubmitted() && q.correctAnswer === true"
+                              [class.border-red-500]="isQuizSubmitted() && userAnswers[q.id] === true && q.correctAnswer !== true"
+                              [class.bg-red-50]="isQuizSubmitted() && userAnswers[q.id] === true && q.correctAnswer !== true"
+                              [disabled]="isQuizSubmitted()"
+                              (click)="selectAnswer(q.id, true)">
+                              <span>صواب (صح)</span>
+                              @if (isQuizSubmitted() && q.correctAnswer === true) {
+                                <span class="material-icons text-emerald-600 text-base">check_circle</span>
+                              }
+                            </button>
+
+                            <button
+                              type="button"
+                              class="option-btn p-3.5 rounded-xl border-2 font-bold text-sm text-center transition-all flex items-center justify-center gap-2"
+                              [class.border-amber-700]="userAnswers[q.id] === false && !isQuizSubmitted()"
+                              [class.bg-amber-50]="userAnswers[q.id] === false && !isQuizSubmitted()"
+                              [class.border-emerald-600]="isQuizSubmitted() && q.correctAnswer === false"
+                              [class.bg-emerald-50]="isQuizSubmitted() && q.correctAnswer === false"
+                              [class.text-emerald-900]="isQuizSubmitted() && q.correctAnswer === false"
+                              [class.border-red-500]="isQuizSubmitted() && userAnswers[q.id] === false && q.correctAnswer !== false"
+                              [class.bg-red-50]="isQuizSubmitted() && userAnswers[q.id] === false && q.correctAnswer !== false"
+                              [disabled]="isQuizSubmitted()"
+                              (click)="selectAnswer(q.id, false)">
+                              <span>خطأ (خطأ)</span>
+                              @if (isQuizSubmitted() && q.correctAnswer === false) {
+                                <span class="material-icons text-emerald-600 text-base">check_circle</span>
+                              }
+                            </button>
+                          </div>
+                        }
+                      </div>
+
+                      <!-- EXPLANATION FEEDBACK -->
+                      @if (isQuizSubmitted() && q.explanation) {
+                        <div class="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 font-bold flex items-start gap-2">
+                          <span class="material-icons text-base text-amber-700 flex-shrink-0">lightbulb</span>
+                          <div>
+                            <span class="block mb-0.5 text-amber-950 font-black">الشرح والتفسير العلمي:</span>
+                            <span>{{ q.explanation }}</span>
+                          </div>
+                        </div>
+                      }
+
+                    </div>
+                  }
                 </div>
-              </div>
 
-              <div class="player-count">
-                <span>جاهز للتشغيل</span>
-                <strong>
-                  <span class="material-icons">play_arrow</span>
-                </strong>
+                <!-- MODAL ACTIONS -->
+                <div class="mt-8 pt-5 border-t border-gray-200 flex flex-wrap items-center justify-between gap-4">
+                  @if (!isQuizSubmitted()) {
+                    <button
+                      type="button"
+                      class="btn-primary bg-amber-900 hover:bg-amber-950 px-8 py-3 text-base font-black shadow-lg"
+                      data-sound="submit"
+                      (click)="submitQuiz(mod.id)">
+                      تسليم اختبار الدرس وتأكيد الإنجاز 📝
+                    </button>
+                  } @else {
+                    <div class="flex items-center gap-3">
+                      <button
+                        type="button"
+                        class="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-xl font-bold text-sm border border-gray-300"
+                        (click)="resetQuiz()">
+                        إعادة محاولة الاختبار
+                      </button>
+                    </div>
+
+                    @if (nextModule(); as nextMod) {
+                      <button
+                        type="button"
+                        class="btn-primary bg-emerald-700 hover:bg-emerald-800 px-8 py-3 text-base font-black shadow-lg flex items-center gap-2 animate-pulse"
+                        (click)="navigateToNextModule(nextMod.id)">
+                        <span>الانتقال إلى {{ nextMod.titleAr }} 🚀</span>
+                        <span class="material-icons text-lg">arrow_back</span>
+                      </button>
+                    } @else {
+                      <a routerLink="/question-bank" (click)="closeQuizModal()" class="btn-primary bg-emerald-700 hover:bg-emerald-800 px-8 py-3 text-base font-black shadow-lg">
+                        تهانينا! أكملت جميع الدروس — الذهاب لبنك الأسئلة 🏆
+                      </a>
+                    }
+                  }
+                </div>
+
               </div>
             </div>
+          }
 
-            <div class="video-stage">
-              <video
-                class="lesson-video"
-                controls
-                preload="metadata"
-                [poster]="posterUrl()">
-                <source [src]="mod.videoUrl" type="video/mp4">
-                المتصفح لا يدعم تشغيل الفيديو.
-              </video>
-            </div>
-          </section>
         }
-
-        @if (!hasSlides() && !hasVideo()) {
-          <div class="empty-lesson">
-            لا توجد ملفات مرفقة بهذا الدرس.
-          </div>
-        }
-      </div>
-    } @else {
-      <div class="empty-lesson">
-        جاري التحميل...
       </div>
     }
   `,
   styles: [`
     .lesson-page {
-      display: flex;
-      flex-direction: column;
-      gap: 1.2rem;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 1.5rem;
     }
-
     .lesson-hero {
-      position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 1rem;
-      min-height: 9rem;
-      padding: 1.2rem;
-      overflow: hidden;
-      border: 1px solid #c7d7e3;
-      background:
-        linear-gradient(135deg, rgba(14, 55, 83, 0.92), rgba(7, 116, 142, 0.82)),
-        radial-gradient(circle at 20% 20%, rgba(0, 209, 255, 0.35), transparent 34%);
+      background: linear-gradient(135deg, #4a2c11 0%, #2b180a 100%);
       color: white;
-      box-shadow: 0 18px 36px rgba(19, 65, 88, 0.22);
-      animation: lessonHeroIn 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+      padding: 2.5rem;
+      border-radius: 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+      text-align: right;
     }
-
-    .lesson-hero::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background:
-        linear-gradient(90deg, rgba(255,255,255,0.11) 1px, transparent 1px),
-        linear-gradient(0deg, rgba(255,255,255,0.11) 1px, transparent 1px);
-      background-size: 42px 42px;
-      opacity: 0.5;
-      pointer-events: none;
+    .lesson-hero.opened {
+      border-right: 6px solid #27ae60;
     }
-
-    .lesson-hero::after {
-      content: '';
-      position: absolute;
-      inset: -40% -20%;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.26), transparent);
-      transform: translateX(-70%) rotate(-10deg);
-      animation: heroSweep 1.25s ease-out 0.15s both;
-      pointer-events: none;
-    }
-
-    .lesson-copy,
-    .lesson-stat {
-      position: relative;
-      z-index: 1;
-    }
-
     .lesson-kicker {
-      display: inline-flex;
+      display: inline-block;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #f1c40f;
       margin-bottom: 0.5rem;
-      padding: 0.25rem 0.65rem;
-      border: 1px solid rgba(255,255,255,0.3);
-      background: rgba(255,255,255,0.12);
-      font-weight: 800;
-      font-size: 0.78rem;
     }
-
-    .lesson-copy h1 {
-      margin: 0;
-      font-size: 1.65rem;
+    .lesson-hero h1 {
+      font-size: 1.8rem;
       font-weight: 900;
-      line-height: 1.35;
+      margin: 0 0 0.5rem 0;
     }
-
-    .lesson-copy p {
-      max-width: 42rem;
-      margin: 0.55rem 0 0;
-      color: rgba(255,255,255,0.86);
-      font-weight: 600;
-      line-height: 1.8;
+    .lesson-hero p {
+      font-size: 0.95rem;
+      color: #d0c0b0;
+      margin: 0;
+      max-width: 700px;
     }
-
     .lesson-stat {
-      min-width: 5.6rem;
+      background: rgba(255,255,255,0.1);
+      padding: 1rem 1.5rem;
+      border-radius: 1rem;
       text-align: center;
-      padding: 0.8rem;
-      border: 1px solid rgba(255,255,255,0.28);
-      background: rgba(0,0,0,0.18);
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
+      backdrop-filter: blur(5px);
     }
-
     .lesson-stat span {
       display: block;
-      font-size: 2rem;
+      font-size: 1.8rem;
       font-weight: 900;
-      line-height: 1;
+      color: #f1c40f;
     }
-
     .lesson-stat small {
-      display: block;
-      margin-top: 0.3rem;
-      color: rgba(255,255,255,0.78);
-      font-weight: 800;
+      font-size: 0.75rem;
+      color: #ccc;
     }
-
     .lesson-window-switcher {
       display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
       gap: 0.75rem;
-      padding: 0.35rem;
-      border: 1px solid #d4e1e7;
-      background:
-        linear-gradient(120deg, rgba(255,255,255,0.96), rgba(237,244,247,0.88)),
-        radial-gradient(circle at 15% 30%, rgba(255, 204, 77, 0.22), transparent 30%);
-      box-shadow: 0 12px 28px rgba(28, 64, 82, 0.12);
-      animation: playerOpen 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.05s both;
+      margin-bottom: 1.5rem;
+      overflow-x: auto;
+      padding-bottom: 0.5rem;
     }
-
     .window-switch {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.55rem;
-      min-width: 11rem;
-      border: 1px solid #c7d7e3;
-      padding: 0.7rem 0.9rem;
-      color: #16364a;
-      background: #fff;
-      font-weight: 900;
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.6);
-      transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
-    }
-
-    .window-switch:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 20px rgba(28, 64, 82, 0.14);
-    }
-
-    .window-switch.active {
-      border-color: transparent;
-      color: #fff;
-      background: linear-gradient(145deg, #16364a, #0784aa);
-      box-shadow: 0 14px 28px rgba(7, 132, 170, 0.22);
-    }
-
-    .window-switch .material-icons {
-      font-size: 1.35rem;
-    }
-
-    .window-switch-text {
-      display: grid;
-      gap: 0.1rem;
-      text-align: start;
-    }
-
-    .window-switch-text strong,
-    .window-switch-text small {
-      display: block;
-    }
-
-    .window-switch-text small {
-      color: #647987;
-      font-size: 0.72rem;
-      font-weight: 800;
-    }
-
-    .window-switch.active .window-switch-text small {
-      color: rgba(255,255,255,0.78);
-    }
-
-    .slide-player {
-      overflow: hidden;
-      border: 1px solid #d4e1e7;
-      background:
-        radial-gradient(circle at 8% 10%, rgba(0, 195, 255, 0.12), transparent 26%),
-        linear-gradient(180deg, #f7fbfd 0%, #edf4f7 100%);
-      box-shadow: 0 18px 42px rgba(28, 64, 82, 0.16);
-      animation: playerOpen 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
-    }
-
-    .player-top {
+      background: white;
+      border: 2px solid #e0e0e0;
+      border-radius: 1rem;
+      padding: 0.75rem 1.25rem;
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      gap: 1rem;
-      padding: 0.95rem 1rem;
-      border-bottom: 1px solid #d7e4ea;
-      background: rgba(255,255,255,0.9);
+      gap: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: right;
+      flex-shrink: 0;
     }
-
+    .window-switch:hover {
+      border-color: #6b4226;
+      background: #fdfbf7;
+    }
+    .window-switch.active {
+      border-color: #6b4226;
+      background: #6b4226;
+      color: white;
+    }
+    .window-switch.active small {
+      color: #e0d0c0;
+    }
+    .window-switch-text {
+      display: flex;
+      flex-direction: column;
+    }
+    .window-switch-text strong {
+      font-size: 0.9rem;
+    }
+    .window-switch-text small {
+      font-size: 0.75rem;
+      color: #666;
+    }
+    .slide-player {
+      background: white;
+      border-radius: 1.5rem;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+      overflow: hidden;
+      border: 1px solid #eaeaea;
+    }
+    .player-top {
+      padding: 1.25rem 1.75rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #fafafa;
+      border-bottom: 1px solid #eee;
+    }
     .player-title {
       display: flex;
       align-items: center;
-      gap: 0.7rem;
-      color: #16364a;
+      gap: 0.75rem;
+      text-align: right;
     }
-
     .player-title .material-icons {
-      color: #0784aa;
-      font-size: 1.9rem;
+      color: #6b4226;
     }
-
-    .player-title strong,
-    .player-title small {
+    .player-title strong {
       display: block;
+      font-size: 0.95rem;
     }
-
     .player-title small {
-      color: #647987;
-      font-weight: 700;
-      margin-top: 0.1rem;
+      color: #777;
+      font-size: 0.8rem;
     }
-
     .player-count {
-      display: flex;
-      align-items: center;
-      gap: 0.45rem;
-      color: #16364a;
-      font-weight: 800;
-      white-space: nowrap;
+      font-size: 0.9rem;
+      color: #555;
     }
-
     .player-count strong {
-      min-width: 2.3rem;
-      height: 2.3rem;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      background: #16364a;
-      color: #fff;
-      border-radius: 0.55rem;
-      transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.2s ease;
+      font-size: 1.2rem;
+      color: #6b4226;
+      margin: 0 0.2rem;
     }
-
-    .player-count-total {
-      color: #647987;
-      font-weight: 800;
-    }
-
-    .player-count strong .material-icons {
-      font-size: 1.55rem;
-    }
-
     .progress-track {
-      height: 0.42rem;
-      background: #dce8ee;
-      overflow: hidden;
+      height: 4px;
+      background: #eee;
+      width: 100%;
     }
-
     .progress-track span {
       display: block;
       height: 100%;
-      background: linear-gradient(90deg, #00b4d8, #ff3d9a, #ffcc4d);
-      transition: width 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
+      background: #6b4226;
+      transition: width 0.3s ease;
     }
-
     .stage-wrap {
       position: relative;
-      padding: 1.1rem;
+      background: #111;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 450px;
     }
-
-    .slide-stage {
-      position: relative;
+    .stage-viewport {
+      width: 100%;
       display: flex;
       justify-content: center;
-      align-items: center;
-      min-height: 55vh;
-      perspective: 1400px;
+      cursor: pointer;
     }
-
-    .slide-stage::before {
-      content: '';
-      position: absolute;
-      inset: 7% 5%;
-      background: radial-gradient(circle, rgba(0, 137, 184, 0.16), transparent 64%);
-      filter: blur(18px);
-      opacity: 0.85;
-      pointer-events: none;
-    }
-
-    .slide-image {
-      position: relative;
-      z-index: 1;
-      width: 100%;
-      max-width: 1160px;
-      aspect-ratio: 16 / 9;
+    .stage-image {
+      max-width: 100%;
+      max-height: 650px;
       object-fit: contain;
-      background: #fff;
-      box-shadow:
-        0 22px 48px rgba(22, 54, 74, 0.24),
-        0 0 0 1px rgba(18, 64, 92, 0.12);
-      transform-origin: center;
     }
-
-    .slide-image.enter-next {
-      animation: slideInNext 0.62s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-
-    .slide-image.enter-prev {
-      animation: slideInPrev 0.62s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-
     .stage-nav {
       position: absolute;
       top: 50%;
-      z-index: 3;
-      width: 3.2rem;
-      height: 3.2rem;
-      display: inline-flex;
+      transform: translateY(-50%);
+      background: rgba(0,0,0,0.5);
+      color: white;
+      border: none;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      display: flex;
       align-items: center;
       justify-content: center;
-      border: none;
-      color: #fff;
-      background: linear-gradient(145deg, #16364a, #0784aa);
-      box-shadow: 0 14px 28px rgba(15, 68, 92, 0.25);
-      transform: translateY(-50%);
+      cursor: pointer;
+      transition: all 0.2s;
+      z-index: 10;
     }
-
-    .stage-nav:not(:disabled):hover {
-      filter: brightness(1.08);
+    .stage-nav:hover:not(:disabled) {
+      background: rgba(107, 66, 38, 0.9);
+      scale: 1.1;
     }
-
     .stage-nav:disabled {
-      opacity: 0.36;
+      opacity: 0.2;
+      cursor: not-allowed;
+    }
+    .stage-nav-right { right: 1.5rem; }
+    .stage-nav-left { left: 1.5rem; }
+    .player-controls {
+      padding: 1.25rem 1.75rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      background: #fafafa;
+      border-top: 1px solid #eee;
+    }
+    .btn-control {
+      background: white;
+      border: 1px solid #ccc;
+      border-radius: 0.75rem;
+      padding: 0.6rem 1.25rem;
+      font-weight: 700;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .btn-control:hover:not(:disabled) {
+      background: #eee;
+    }
+    .btn-control.primary {
+      background: #6b4226;
+      color: white;
+      border-color: #6b4226;
+    }
+    .btn-control.primary:hover:not(:disabled) {
+      background: #52321c;
+    }
+    .btn-control:disabled {
+      opacity: 0.4;
       cursor: not-allowed;
     }
 
-    .stage-nav .material-icons {
-      font-size: 2rem;
-    }
-
-    .stage-nav-right {
-      right: 1.4rem;
-    }
-
-    .stage-nav-left {
-      left: 1.4rem;
-    }
-
-    .thumbs-strip {
-      display: flex;
-      gap: 0.75rem;
-      overflow-x: auto;
-      padding: 0.9rem 1rem 1.1rem;
-      border-top: 1px solid #d7e4ea;
-      background: rgba(255,255,255,0.76);
-    }
-
-    .thumb {
-      min-width: 8rem;
-      padding: 0.35rem;
-      border: 2px solid transparent;
-      background: #fff;
-      color: #16364a;
+    .btn-quiz-single {
+      background: #d97706;
+      color: white;
+      border: none;
+      border-radius: 0.75rem;
+      padding: 0.65rem 1.4rem;
       font-weight: 900;
-      box-shadow: 0 6px 16px rgba(28, 64, 82, 0.08);
+      font-size: 0.9rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      white-space: nowrap;
+      box-shadow: 0 4px 12px rgba(217, 119, 6, 0.35);
+      transition: all 0.2s ease;
     }
-
-    .thumb img {
-      width: 100%;
-      aspect-ratio: 16 / 9;
-      object-fit: cover;
-      display: block;
-    }
-
-    .thumb span {
-      display: block;
-      padding-top: 0.25rem;
-      font-size: 0.8rem;
-    }
-
-    .thumb.active {
-      border-color: #0784aa;
-      box-shadow: 0 10px 24px rgba(7, 132, 170, 0.22);
+    .btn-quiz-single:hover {
+      background: #b45309;
       transform: translateY(-2px);
-    }
-
-    .video-player {
-      background:
-        radial-gradient(circle at 80% 8%, rgba(255, 61, 154, 0.12), transparent 28%),
-        linear-gradient(180deg, #fdfbf7 0%, #edf4f7 100%);
-    }
-
-    .video-stage {
-      position: relative;
-      padding: 1.15rem;
-      background:
-        linear-gradient(135deg, rgba(22, 54, 74, 0.08), transparent),
-        radial-gradient(circle at center, rgba(7, 132, 170, 0.14), transparent 62%);
-    }
-
-    .video-stage::before {
-      content: '';
-      position: absolute;
-      inset: 1.15rem;
-      border: 1px solid rgba(255,255,255,0.65);
-      pointer-events: none;
-      box-shadow: inset 0 0 24px rgba(255,255,255,0.5);
-    }
-
-    .lesson-video {
-      position: relative;
-      z-index: 1;
-      display: block;
-      width: 100%;
-      max-width: 1160px;
-      margin: 0 auto;
-      aspect-ratio: 16 / 9;
-      object-fit: contain;
-      background: #0c1720;
-      box-shadow:
-        0 22px 48px rgba(22, 54, 74, 0.24),
-        0 0 0 1px rgba(18, 64, 92, 0.12);
-      animation: videoReveal 0.7s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-
-    .empty-lesson {
-      text-align: center;
-      padding: 4rem 0;
-      color: #647987;
-      font-weight: 800;
-    }
-
-    @keyframes lessonHeroIn {
-      from {
-        opacity: 0;
-        transform: translateY(1rem) scale(0.98);
-        clip-path: inset(0 50% 0 50%);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-        clip-path: inset(0 0 0 0);
-      }
-    }
-
-    @keyframes heroSweep {
-      from {
-        transform: translateX(-70%) rotate(-10deg);
-      }
-      to {
-        transform: translateX(70%) rotate(-10deg);
-      }
-    }
-
-    @keyframes playerOpen {
-      from {
-        opacity: 0;
-        transform: translateY(1.2rem) scale(0.96);
-        filter: blur(8px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-        filter: blur(0);
-      }
-    }
-
-    @keyframes slideInNext {
-      from {
-        opacity: 0;
-        transform: translateX(-4rem) rotateY(12deg) scale(0.96);
-        filter: blur(6px);
-      }
-      to {
-        opacity: 1;
-        transform: translateX(0) rotateY(0) scale(1);
-        filter: blur(0);
-      }
-    }
-
-    @keyframes slideInPrev {
-      from {
-        opacity: 0;
-        transform: translateX(4rem) rotateY(-12deg) scale(0.96);
-        filter: blur(6px);
-      }
-      to {
-        opacity: 1;
-        transform: translateX(0) rotateY(0) scale(1);
-        filter: blur(0);
-      }
-    }
-
-    @keyframes videoReveal {
-      from {
-        opacity: 0;
-        transform: translateY(1rem) scale(0.985);
-        filter: saturate(0.65) blur(4px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-        filter: saturate(1) blur(0);
-      }
-    }
-
-    @media (max-width: 768px) {
-      .lesson-hero,
-      .player-top {
-        align-items: flex-start;
-        flex-direction: column;
-      }
-
-      .lesson-copy h1 {
-        font-size: 1.25rem;
-      }
-
-      .lesson-window-switcher {
-        flex-direction: column;
-      }
-
-      .window-switch {
-        width: 100%;
-      }
-
-      .stage-wrap,
-      .video-stage {
-        padding: 0.8rem;
-      }
-
-      .video-stage::before {
-        inset: 0.8rem;
-      }
-
-      .slide-stage {
-        min-height: auto;
-      }
-
-      .stage-nav {
-        width: 2.65rem;
-        height: 2.65rem;
-      }
-
-      .stage-nav-right {
-        right: 0.65rem;
-      }
-
-      .stage-nav-left {
-        left: 0.65rem;
-      }
-
-      .thumb {
-        min-width: 6.5rem;
-      }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      .lesson-hero,
-      .lesson-hero::after,
-      .lesson-window-switcher,
-      .slide-player,
-      .slide-image.enter-next,
-      .slide-image.enter-prev,
-      .lesson-video {
-        animation: none;
-      }
+      box-shadow: 0 6px 16px rgba(180, 83, 9, 0.4);
     }
   `]
 })
 export class ModulePageComponent implements AfterViewInit {
-  private readonly route = inject(ActivatedRoute);
-  private readonly moduleService = inject(ModuleService);
-  private readonly buttonSound = inject(ButtonSoundService);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  readonly moduleService = inject(ModuleService);
+  private questionBankService = inject(QuestionBankService);
+  private buttonSound = inject(ButtonSoundService);
 
-  private readonly paramId = toSignal(this.route.paramMap);
+  private routeParam = toSignal(this.route.paramMap);
 
-  currentIndex = signal(0);
-  slideDirection = signal<'next' | 'prev'>('next');
-  animationFlip = signal(true);
   opened = signal(false);
   activeWindow = signal<LessonWindow>('slides');
-  activeDeckId = signal<string | null>(null);
+  activeDeckId = signal<string>('part-1');
+
+  slideIndex = signal(0);
+
+  // Modal Quiz state for current lesson
+  showQuizModal = signal(false);
+  userAnswers: Record<number, string | boolean> = {};
+  isQuizSubmitted = signal(false);
+  quizScore = signal(0);
+  unlockedToastMessage = signal<string | null>(null);
 
   module = computed(() => {
-    const id = this.paramId()?.get('id');
-    return id ? this.moduleService.getModuleById(id) : undefined;
+    const params = this.routeParam();
+    const id = params?.get('id') || 'blueprint-to-canvas';
+    return this.moduleService.getModuleById(id);
+  });
+
+  isUnlocked = computed(() => {
+    const mod = this.module();
+    if (!mod) return true;
+    return this.moduleService.isModuleUnlocked(mod.id);
+  });
+
+  moduleProgress = computed(() => {
+    const mod = this.module();
+    if (!mod) return null;
+    return this.moduleService.getModuleProgress(mod.id);
+  });
+
+  lessonQuestions = computed<Question[]>(() => {
+    const mod = this.module();
+    if (!mod) return [];
+    const cat = this.moduleService.getCategoryForModule(mod.id);
+    return this.questionBankService.getQuestionsByCategory(cat);
+  });
+
+  nextModule = computed(() => {
+    const mod = this.module();
+    if (!mod) return null;
+    return this.moduleService.getNextModule(mod.id);
   });
 
   slideDecks = computed<ModuleSlideDeck[]>(() => {
-    const module = this.module();
-    if (!module) return [];
-    if (module.slideDecks?.length) return module.slideDecks;
-    if (!module.slides?.length) return [];
+    const m = this.module();
+    if (!m) return [];
 
-    return [
-      {
-        id: 'main',
-        titleAr: 'ملف الدرس',
-        subtitleAr: 'عرض تفاعلي للدرس',
-        fileName: module.titleEn === 'Blueprint to Canvas' ? 'Blueprint_to_Canvas.pptx' : 'ملف الدرس',
-        slides: module.slides
-      }
-    ];
+    if (m.slideDecks && m.slideDecks.length > 0) {
+      return m.slideDecks;
+    }
+
+    if (m.slides && m.slides.length > 0) {
+      return [
+        {
+          id: 'default',
+          titleAr: 'العرض التقديمي للدرس',
+          subtitleAr: m.descriptionAr || '',
+          fileName: m.titleAr,
+          slides: m.slides
+        }
+      ];
+    }
+
+    return [];
   });
 
-  activeDeck = computed(() => {
+  activeDeck = computed<ModuleSlideDeck | undefined>(() => {
     const decks = this.slideDecks();
-    const selectedDeckId = this.activeDeckId();
-    return decks.find((deck) => deck.id === selectedDeckId) ?? decks[0];
+    if (decks.length === 0) return undefined;
+    const match = decks.find((d) => d.id === this.activeDeckId());
+    return match || decks[0];
   });
 
-  currentSlides = computed(() => this.activeDeck()?.slides ?? []);
-  hasSlides = computed(() => this.slideDecks().some((deck) => deck.slides.length > 0));
-  hasVideo = computed(() => Boolean(this.module()?.videoUrl));
-  totalSlides = computed(() => this.currentSlides().length);
+  hasSlides = computed(() => this.slideDecks().length > 0);
+  hasVideo = computed(() => !!this.module()?.videoUrl);
+
+  totalSlides = computed(() => this.activeDeck()?.slides.length || 0);
+
   safeIndex = computed(() => {
     const total = this.totalSlides();
-    if (!total) return 0;
-    return Math.min(this.currentIndex(), total - 1);
+    if (total === 0) return 0;
+    const current = this.slideIndex();
+    return Math.min(Math.max(current, 0), total - 1);
   });
-  currentPage = computed(() => this.totalSlides() ? this.safeIndex() + 1 : 0);
+
+  currentPage = computed(() => (this.totalSlides() > 0 ? this.safeIndex() + 1 : 0));
+
   progressPercent = computed(() => {
     const total = this.totalSlides();
-    return total ? ((this.safeIndex() + 1) / total) * 100 : 0;
+    if (total <= 1) return 100;
+    return (this.safeIndex() / (total - 1)) * 100;
   });
-  posterUrl = computed(() => this.module()?.posterUrl ?? this.slideDecks()[0]?.slides[0] ?? '');
 
-  private readonly resetOnModuleChange = effect(() => {
-    this.paramId()?.get('id');
-    this.currentIndex.set(0);
-    this.activeDeckId.set(null);
-    this.activeWindow.set('slides');
-  }, { allowSignalWrites: true });
+  activeSlideUrl = computed(() => {
+    const deck = this.activeDeck();
+    if (!deck || deck.slides.length === 0) return '';
+    return deck.slides[this.safeIndex()] || '';
+  });
 
-  ngAfterViewInit(): void {
-    setTimeout(() => {
-      if (!this.hasSlides() && this.hasVideo()) {
-        this.activeWindow.set('video');
-      }
+  constructor() {
+    effect(
+      () => {
+        const decks = this.slideDecks();
+        if (decks.length > 0 && !decks.some((d) => d.id === this.activeDeckId())) {
+          this.activeDeckId.set(decks[0].id);
+        }
+      },
+      { allowSignalWrites: true }
+    );
 
-      this.opened.set(true);
-      this.buttonSound.play('lessonOpen');
-    }, 120);
+    // Reset quiz modal when route/module changes
+    effect(
+      () => {
+        const mod = this.module();
+        if (mod) {
+          this.slideIndex.set(0);
+          this.showQuizModal.set(false);
+          this.userAnswers = {};
+          this.isQuizSubmitted.set(false);
+          this.quizScore.set(0);
+
+          // Restore saved quiz result if already completed
+          const prog = this.moduleService.getModuleProgress(mod.id);
+          if (prog && prog.completed) {
+            this.isQuizSubmitted.set(true);
+            this.quizScore.set(prog.score);
+          }
+        }
+      },
+      { allowSignalWrites: true }
+    );
   }
 
-  currentSlide(): string {
-    return this.currentSlides()[this.safeIndex()] ?? '';
+  ngAfterViewInit() {
+    setTimeout(() => this.opened.set(true), 150);
+  }
+
+  setActiveWindow(window: LessonWindow) {
+    this.activeWindow.set(window);
+  }
+
+  setActiveDeck(deckId: string) {
+    this.activeDeckId.set(deckId);
+    this.activeWindow.set('slides');
+    this.slideIndex.set(0);
   }
 
   isActiveDeck(deckId: string): boolean {
-    return this.activeWindow() === 'slides' && this.activeDeck()?.id === deckId;
+    return this.activeWindow() === 'slides' && this.activeDeckId() === deckId;
   }
 
-  setActiveDeck(deckId: string): void {
-    this.activeDeckId.set(deckId);
-    this.activeWindow.set('slides');
-    this.currentIndex.set(0);
-    this.animationFlip.update((value) => !value);
+  nextSlide() {
+    if (this.safeIndex() < this.totalSlides() - 1) {
+      this.slideIndex.update((i) => i + 1);
+    }
   }
 
-  setActiveWindow(windowName: LessonWindow): void {
-    this.activeWindow.set(windowName);
+  prevSlide() {
+    if (this.safeIndex() > 0) {
+      this.slideIndex.update((i) => i - 1);
+    }
   }
 
-  nextSlide(): void {
-    if (this.safeIndex() >= this.totalSlides() - 1) return;
-    this.slideDirection.set('next');
-    this.currentIndex.set(this.safeIndex() + 1);
-    this.animationFlip.update((value) => !value);
+  openQuizModal(): void {
+    this.buttonSound.play('start');
+    this.showQuizModal.set(true);
   }
 
-  prevSlide(): void {
-    if (this.safeIndex() <= 0) return;
-    this.slideDirection.set('prev');
-    this.currentIndex.set(this.safeIndex() - 1);
-    this.animationFlip.update((value) => !value);
+  closeQuizModal(): void {
+    this.buttonSound.play('back');
+    this.showQuizModal.set(false);
   }
 
-  goToSlide(index: number): void {
-    const total = this.totalSlides();
-    const nextIndex = Math.max(0, Math.min(index, total - 1));
-    if (nextIndex === this.safeIndex()) return;
-    this.slideDirection.set(nextIndex > this.safeIndex() ? 'next' : 'prev');
-    this.currentIndex.set(nextIndex);
-    this.animationFlip.update((value) => !value);
+  selectAnswer(questionId: number, answer: string | boolean): void {
+    if (this.isQuizSubmitted()) return;
+    this.userAnswers[questionId] = answer;
+  }
+
+  isAnswerCorrect(q: Question): boolean {
+    return this.userAnswers[q.id] === q.correctAnswer;
+  }
+
+  submitQuiz(moduleId: string): void {
+    const questions = this.lessonQuestions();
+    if (questions.length === 0) return;
+
+    // Check if all questions answered
+    const unanswered = questions.filter((q) => this.userAnswers[q.id] === undefined);
+    if (unanswered.length > 0) {
+      alert(`⚠️ عذراً، يرجى الإجابة على جميع أسئلة الدرس الـ (${questions.length}) قبل التسليم!\n\nيتبقى لديك ${unanswered.length} سؤال بدون إجابة.`);
+      return;
+    }
+
+    // Calculate score
+    let score = 0;
+    for (const q of questions) {
+      if (this.userAnswers[q.id] === q.correctAnswer) {
+        score++;
+      }
+    }
+
+    this.quizScore.set(score);
+    this.isQuizSubmitted.set(true);
+    this.buttonSound.play('success');
+
+    // Save completion and unlock next module
+    const res = this.moduleService.setModuleCompleted(moduleId, score, questions.length);
+
+    if (res.unlockedNext && res.nextModule) {
+      this.unlockedToastMessage.set(`🎉 ممتاز جداً! تم اجتياز اختبار الدرس بنجاح، وتم فتح ${res.nextModule.titleAr} بنجاح!`);
+      setTimeout(() => this.unlockedToastMessage.set(null), 6000);
+    }
+  }
+
+  resetQuiz(): void {
+    this.userAnswers = {};
+    this.isQuizSubmitted.set(false);
+    this.quizScore.set(0);
+  }
+
+  navigateToNextModule(nextModuleId: string): void {
+    this.showQuizModal.set(false);
+    this.router.navigate(['/module', nextModuleId]);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   @HostListener('window:keydown', ['$event'])
-  onKeydown(event: KeyboardEvent): void {
+  handleKeyDown(event: KeyboardEvent) {
+    if (this.showQuizModal()) return;
     if (this.activeWindow() !== 'slides') return;
-
-    if (event.key === 'ArrowLeft') {
-      this.nextSlide();
-    }
     if (event.key === 'ArrowRight') {
       this.prevSlide();
+    } else if (event.key === 'ArrowLeft' || event.key === 'Space') {
+      this.nextSlide();
     }
   }
 }

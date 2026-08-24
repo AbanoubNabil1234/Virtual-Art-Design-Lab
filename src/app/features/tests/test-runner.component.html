@@ -1,0 +1,453 @@
+<div class="max-w-4xl mx-auto p-3 md:p-6 relative">
+
+  <!-- ============================================== -->
+  <!-- 0. UNANSWERED QUESTIONS MODAL / POPUP -->
+  <!-- ============================================== -->
+  <div *ngIf="showUnansweredModal()"
+       class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
+    <div class="bg-white rounded-3xl p-6 md:p-8 max-w-lg w-full shadow-2xl border-2 border-amber-400 text-right animate-scale-in">
+      <div class="w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-4">
+        <span class="material-icons text-3xl">warning</span>
+      </div>
+
+      <h3 class="text-xl font-black text-gray-900 text-center mb-2">
+        يلزم إجابة جميع الأسئلة لتسليم الاختبار
+      </h3>
+      <p class="text-sm text-gray-600 text-center mb-5 leading-relaxed">
+        تنبيه: يوجد لديك <strong class="text-amber-700 font-black">{{ unansweredCount() }} سؤالاً</strong> لم تقم بالإجابة عليها بعد. يرجى إكمال إجابة كافة الأسئلة أولاً لتتمكن من إظهار النتيجة والحلول الصحيحة.
+      </p>
+
+      <!-- UNANSWERED QUESTIONS CHIPS LIST -->
+      <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-6">
+        <div class="text-xs font-bold text-amber-900 mb-2 flex items-center gap-1">
+          <span class="material-icons text-sm">format_list_bulleted</span>
+          الأسئلة المتبقية بدون إجابة (اضغط للذهاب للسؤال):
+        </div>
+
+        <div class="flex flex-wrap gap-2 max-h-40 overflow-y-auto p-1">
+          <button *ngFor="let qId of unansweredQuestionIds()"
+                  (click)="jumpToQuestion(qId)"
+                  class="px-3 py-1.5 bg-white hover:bg-amber-600 hover:text-white text-amber-900 text-xs font-black rounded-xl border border-amber-300 transition-colors flex items-center gap-1 shadow-sm">
+            <span>سؤال {{ qId }}</span>
+            <span class="material-icons text-xs">arrow_back</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="flex flex-col sm:flex-row gap-2">
+        <button (click)="jumpToFirstUnanswered()"
+                class="btn-primary bg-amber-600 hover:bg-amber-700 flex-1 justify-center py-2.5 text-sm font-bold flex items-center gap-1.5">
+          <span class="material-icons text-base">near_me</span>
+          الانتقال لأول سؤال غير مجاب
+        </button>
+
+        <button (click)="closeUnansweredModal()"
+                class="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-xl transition-colors border border-gray-300">
+          متابعة الحل
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- 0. LOCKED VIEW (IF POST TEST LOCKED) -->
+  <!-- ============================================== -->
+  <div *ngIf="testType() === 'post' && !testsService.isPostUnlocked()"
+       class="bg-white border-2 border-rose-200 rounded-2xl p-8 text-center shadow-lg animate-fade-in my-8">
+    <div class="w-20 h-20 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center mx-auto mb-4">
+      <span class="material-icons text-4xl">lock</span>
+    </div>
+    <h2 class="text-2xl font-black text-gray-900 mb-2">الاختبار التحصيلي البعدي مغلق</h2>
+    <p class="text-gray-600 max-w-lg mx-auto mb-6 text-sm leading-relaxed">
+      عزيزي الطالب / عزيزتي الطالبة، يتطلب فتح الاختبار البعدي إكمال وتسليم <strong>الاختبار التحصيلي القبلي</strong> أولاً، لضمان قياس أثر المعمل الافتراضي علمياً.
+    </p>
+    <div class="flex flex-wrap justify-center gap-3">
+      <a [routerLink]="['/tests', 'pre']" class="btn-primary flex items-center gap-2">
+        <span class="material-icons text-sm">play_arrow</span>
+        الانتقال للاختبار القبلي
+      </a>
+      <a routerLink="/tests" class="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl transition-colors">
+        العودة لمركز الاختبارات
+      </a>
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- STEP 1: INTRO / INSTRUCTIONS -->
+  <!-- ============================================== -->
+  <div *ngIf="(testType() === 'pre' || testsService.isPostUnlocked()) && step() === 'intro'"
+       class="bg-gray-50 border border-gray-200 rounded-2xl p-6 md:p-10 shadow-sm animate-fade-in-up">
+
+    <div class="flex justify-between items-center mb-6 pb-4 border-b border-gray-200">
+      <a routerLink="/tests" class="inline-flex items-center gap-1 text-sm font-bold text-gray-600 hover:text-amber-900">
+        <span class="material-icons text-base">arrow_forward</span>
+        العودة لمركز الاختبارات
+      </a>
+      <span class="px-3 py-1 bg-amber-900/10 text-amber-900 font-bold text-xs rounded-full border border-amber-900/20">
+        {{ testType() === 'pre' ? 'القياس القبلي' : 'القياس البعدي' }}
+      </span>
+    </div>
+
+    <div class="text-center mb-8">
+      <h2 class="text-2xl md:text-3xl font-extrabold text-gray-900 mb-2">{{ testTitle }}</h2>
+      <h3 class="text-base md:text-lg text-gray-600 font-semibold">{{ testSubtitle }}</h3>
+    </div>
+
+    <!-- Quick Info Pill Bar -->
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6">
+      <div class="bg-white p-3 rounded-xl border border-gray-200 text-center">
+        <span class="material-icons text-amber-600 text-xl block mb-1">timer</span>
+        <div class="text-xs text-gray-500 font-bold">الوقت المحدد</div>
+        <div class="text-sm font-black text-gray-800">45 دقيقة</div>
+      </div>
+      <div class="bg-white p-3 rounded-xl border border-gray-200 text-center">
+        <span class="material-icons text-blue-600 text-xl block mb-1">format_list_numbered</span>
+        <div class="text-xs text-gray-500 font-bold">عدد الأسئلة</div>
+        <div class="text-sm font-black text-gray-800">45 سؤالاً</div>
+      </div>
+      <div class="col-span-2 md:col-span-1 bg-white p-3 rounded-xl border border-gray-200 text-center">
+        <span class="material-icons text-emerald-600 text-xl block mb-1">save</span>
+        <div class="text-xs text-gray-500 font-bold">الحفظ التلقائي</div>
+        <div class="text-sm font-black text-emerald-700">مفعل بالمتصفح</div>
+      </div>
+    </div>
+
+    <div class="space-y-6 text-right leading-relaxed text-gray-800">
+      <div>
+        <p class="font-bold text-amber-900 border-r-4 border-amber-900 pr-3 mb-2">هدف الاختبار:</p>
+        <p class="text-sm md:text-base text-gray-700">
+          يهدف الاختبار التحصيلي إلى قياس مدى تمكن طلاب المرحلة الثانوية من مفاهيم التصميم في مادة التربية
+          الفنية، وذلك في ضوء استخدام المعمل الافتراضي، والتعرّف على مستوى التحصيل المعرفي لديهم.
+        </p>
+      </div>
+
+      <div>
+        <p class="font-bold text-amber-900 border-r-4 border-amber-900 pr-3 mb-2">تعليمات هامة قبل البدء:</p>
+        <p class="text-sm text-gray-600">عزيزي الطالب / عزيزتي الطالبة يرجى قراءة التعليمات التالية بعناية:</p>
+        <ul class="list-decimal list-inside pr-2 space-y-2 mt-2 text-sm text-gray-700">
+          <li>يتكون هذا الاختبار من 45 سؤالاً موضوعياً (اختيار من متعدد).</li>
+          <li>يجب الإجابة على <strong>كافة الأسئلة الـ 45</strong> لتتمكن من تسليم الاختبار وإظهار الإجابة والنتيجة.</li>
+          <li>يتم تشغيل مؤقت زمني مدته <strong>45 دقيقة</strong> يبدأ فور الضغط على زر البدء.</li>
+          <li>يتم حفظ كل إجابة تختارها فوراً في ذاكرة المتصفح.</li>
+          <li>يمكنك التنقل بين الصفحات ومتابعة الأسئلة غير المجابة بسهولة عبر مؤشرات الصفحات.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="mt-8 pt-6 border-t border-gray-200 text-center">
+      <h3 class="text-lg font-bold text-gray-700 mb-2">مع تمنياتنا لكم بالتوفيق والتميز</h3>
+      <div class="flex flex-col items-center mb-6">
+        <p class="text-xs text-gray-500 mb-0.5">إعداد الباحث</p>
+        <p class="text-base font-bold text-gray-900">أحمد عدنان ياسين</p>
+      </div>
+      <button (click)="startExam()" class="btn-action px-8 py-3 text-lg shadow-lg hover:shadow-xl font-black" data-sound="start">
+        ابدأ الاختبار الآن (45 دقيقة)
+      </button>
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- STEP 2: EXAM QUESTIONS WITH LIVE 45-MIN TIMER -->
+  <!-- ============================================== -->
+  <div *ngIf="(testType() === 'pre' || testsService.isPostUnlocked()) && step() === 'exam'" class="animate-fade-in">
+
+    <!-- STICKY TOP TIMER & PROGRESS BAR -->
+    <div class="sticky-timer-bar bg-white/95 border-2 rounded-2xl p-4 mb-6 shadow-md transition-colors"
+         [class.border-red-400]="isTimerLow()"
+         [class.border-amber-400]="isTimerMedium()"
+         [class.border-gray-200]="!isTimerLow() && !isTimerMedium()">
+
+      <div class="flex flex-wrap items-center justify-between gap-4">
+
+        <!-- Title & Page Info -->
+        <div class="flex items-center gap-3">
+          <span class="px-2.5 py-1 rounded-lg text-xs font-black bg-amber-900 text-white">
+            {{ testType() === 'pre' ? 'القبلي' : 'البعدي' }}
+          </span>
+          <span class="font-bold text-gray-800 text-sm md:text-base">
+            صفحة {{ currentPage() + 1 }} من {{ totalPages }}
+          </span>
+        </div>
+
+        <!-- 45-MIN LIVE COUNTDOWN TIMER -->
+        <div class="flex items-center gap-2 px-4 py-1.5 rounded-xl border shadow-inner transition-all font-mono"
+             [class.bg-red-50]="isTimerLow()"
+             [class.text-red-700]="isTimerLow()"
+             [class.border-red-300]="isTimerLow()"
+             [class.timer-warning]="isTimerLow()"
+             [class.bg-amber-50]="isTimerMedium()"
+             [class.text-amber-800]="isTimerMedium()"
+             [class.border-amber-300]="isTimerMedium()"
+             [class.bg-emerald-50]="!isTimerLow() && !isTimerMedium()"
+             [class.text-emerald-800]="!isTimerLow() && !isTimerMedium()"
+             [class.border-emerald-300]="!isTimerLow() && !isTimerMedium()">
+          <span class="material-icons text-xl" [class.animate-spin]="isTimerLow()">
+            {{ isTimerLow() ? 'alarm' : 'timer' }}
+          </span>
+          <div class="text-right">
+            <span class="text-[10px] block font-sans leading-none opacity-75">الوقت المتبقي</span>
+            <span class="text-xl md:text-2xl font-black tracking-wider">{{ formattedTimer() }}</span>
+          </div>
+        </div>
+
+        <!-- Progress Counter -->
+        <div class="text-left">
+          <div class="text-xs text-gray-500 font-bold">الإجابات المكتملة</div>
+          <div class="text-sm font-black text-gray-800">
+            {{ answeredCount() }} / {{ questions().length }} ({{ progressPercentage() }}%)
+          </div>
+          <div *ngIf="unansweredCount() > 0" class="text-[11px] text-amber-700 font-bold">
+            متبقي {{ unansweredCount() }} سؤالاً
+          </div>
+        </div>
+      </div>
+
+      <!-- Linear Progress Bar -->
+      <div class="w-full bg-gray-100 rounded-full h-2 mt-3 overflow-hidden">
+        <div class="bg-gradient-to-r from-amber-800 to-emerald-600 h-2 rounded-full transition-all duration-300"
+             [style.width.%]="progressPercentage()">
+        </div>
+      </div>
+
+      <!-- Quick Page Navigation Pills with Completion Badges -->
+      <div class="flex items-center justify-center gap-2 mt-3 pt-2 border-t border-gray-100 flex-wrap">
+        <span class="text-xs text-gray-400 font-bold ml-2">الانتقال السريع للصفحات:</span>
+        <button *ngFor="let p of [0, 1, 2, 3, 4, 5]"
+                (click)="jumpToPage(p)"
+                class="page-pill w-8 h-8 rounded-lg text-xs font-bold transition-all flex items-center justify-center"
+                [class.bg-amber-900]="currentPage() === p"
+                [class.text-white]="currentPage() === p"
+                [class.bg-gray-100]="currentPage() !== p"
+                [class.text-gray-700]="currentPage() !== p">
+          <span>{{ p + 1 }}</span>
+          <!-- Badge -->
+          <span *ngIf="isPageComplete(p)" class="page-pill-badge bg-emerald-500 text-white">✓</span>
+          <span *ngIf="!isPageComplete(p)" class="page-pill-badge bg-amber-500 text-white">!</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- TIME EXPIRED MODAL / BANNER -->
+    <div *ngIf="timeExpiredNotice()"
+         class="bg-red-600 text-white rounded-2xl p-6 mb-6 text-center shadow-2xl animate-scale-in">
+      <span class="material-icons text-5xl mb-2">alarm_off</span>
+      <h3 class="text-2xl font-black mb-1">انتهى الوقت المحدد للاختبار (45 دقيقة)!</h3>
+      <p class="text-red-100 text-sm m-0">جاري تسليم إجاباتك المسجلة وحساب النتيجة تلقائياً...</p>
+    </div>
+
+    <!-- QUESTIONS LIST FOR CURRENT PAGE -->
+    <div class="space-y-5">
+      <div *ngFor="let q of visibleQuestions"
+           [id]="'q_card_' + q.id"
+           class="question-card"
+           [class.answered]="isQuestionAnswered(q.id)"
+           [class.unanswered-highlight]="attemptedSubmit() && !isQuestionAnswered(q.id)">
+        <div class="flex gap-3 md:gap-4 items-start mb-4 justify-between">
+          <div class="flex gap-3 items-start">
+            <span class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 font-bold text-sm"
+                  [class.bg-amber-900]="isQuestionAnswered(q.id)"
+                  [class.text-white]="isQuestionAnswered(q.id)"
+                  [class.bg-gray-200]="!isQuestionAnswered(q.id)"
+                  [class.text-gray-700]="!isQuestionAnswered(q.id)">
+              {{ q.id }}
+            </span>
+            <div class="text-base md:text-lg font-bold text-gray-900 leading-snug pt-0.5">
+              {{ q.text }}
+            </div>
+          </div>
+
+          <!-- Unanswered badge -->
+          <span *ngIf="!isQuestionAnswered(q.id)" class="px-2.5 py-1 bg-amber-100 text-amber-800 border border-amber-300 rounded-lg text-xs font-bold whitespace-nowrap flex items-center gap-1 flex-shrink-0">
+            <span class="material-icons text-xs">priority_high</span>
+            لم يُجب
+          </span>
+        </div>
+
+        <!-- 4 OPTIONS -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5 pr-2 md:pr-11">
+          <label *ngFor="let opt of q.options"
+                 class="option-row"
+                 [class.selected]="isOptionSelected(q.id, opt)"
+                 (click)="selectOption(q.id, opt)"
+                 data-sound="select">
+            <input type="radio"
+                   [name]="'q_' + q.id"
+                   [value]="opt"
+                   [checked]="isOptionSelected(q.id, opt)"
+                   class="w-4 h-4 accent-amber-900 cursor-pointer">
+            <span class="text-gray-800 text-sm md:text-base leading-tight">{{ opt }}</span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- BOTTOM PAGINATION & SUBMIT BAR -->
+    <div class="flex justify-between items-center mt-8 py-5 border-t border-gray-200">
+      <button [disabled]="currentPage() === 0"
+              (click)="prevPage()"
+              data-sound="prev"
+              class="btn-primary bg-gray-500 hover:bg-gray-600 disabled:opacity-30 px-5 py-2 text-sm flex items-center gap-1">
+        <span class="material-icons text-sm">arrow_forward</span>
+        الصفحة السابقة
+      </button>
+
+      <span class="font-bold text-gray-600 text-sm md:text-base">
+        صفحة {{ currentPage() + 1 }} من {{ totalPages }}
+      </span>
+
+      <button *ngIf="currentPage() < totalPages - 1"
+              (click)="nextPage()"
+              data-sound="next"
+              class="btn-primary px-5 py-2 text-sm flex items-center gap-1">
+        الصفحة التالية
+        <span class="material-icons text-sm">arrow_back</span>
+      </button>
+
+      <button *ngIf="currentPage() === totalPages - 1"
+              (click)="confirmSubmit()"
+              data-sound="submit"
+              class="btn-primary bg-emerald-600 hover:bg-emerald-700 px-6 py-2.5 text-sm md:text-base font-black shadow-lg hover:shadow-xl flex items-center gap-1.5">
+        <span class="material-icons text-base">check_circle</span>
+        تسليم الإجابات النهائية
+      </button>
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- STEP 3: RESULT & FULL ANSWER REVIEW -->
+  <!-- ============================================== -->
+  <div *ngIf="(testType() === 'pre' || testsService.isPostUnlocked()) && step() === 'result'" class="animate-scale-in">
+
+    <!-- RESULT SUMMARY HERO CARD -->
+    <div class="bg-white border-2 border-emerald-300 rounded-3xl p-6 md:p-10 shadow-xl text-center mb-8 relative overflow-hidden">
+      <div class="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-3 shadow-inner">
+        <span class="material-icons text-5xl">check_circle</span>
+      </div>
+
+      <h2 class="text-2xl md:text-3xl font-extrabold text-emerald-800 mb-1">
+        تم تسليم {{ testTitle }} بنجاح!
+      </h2>
+      <p class="text-sm md:text-base text-gray-600 mb-6">
+        تم تصحيح الإجابات وحفظ نتيجتك في المتصفح، يمكنك مراجعة الحلول النموذجية أدناه.
+      </p>
+
+      <!-- Score Value Display -->
+      <div class="score-display my-2">
+        {{ testResult()?.score }} / {{ testResult()?.totalQuestions }}
+        <span class="text-lg md:text-2xl font-bold text-gray-600">
+          ({{ Math.round(((testResult()?.score || 0) / (testResult()?.totalQuestions || 45)) * 100) }}%)
+        </span>
+      </div>
+
+      <!-- Stats Grid -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-2xl mx-auto my-6 text-right">
+        <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3.5 text-center">
+          <p class="text-xs text-emerald-700 font-bold mb-1">الإجابات الصحيحة</p>
+          <p class="text-2xl font-black text-emerald-600 m-0">{{ testResult()?.correctCount }}</p>
+        </div>
+
+        <div class="bg-rose-50 border border-rose-200 rounded-xl p-3.5 text-center">
+          <p class="text-xs text-rose-700 font-bold mb-1">الإجابات الخاطئة</p>
+          <p class="text-2xl font-black text-rose-600 m-0">{{ testResult()?.wrongCount }}</p>
+        </div>
+
+        <div class="bg-blue-50 border border-blue-200 rounded-xl p-3.5 text-center">
+          <p class="text-xs text-blue-700 font-bold mb-1">الوقت المستغرق</p>
+          <p class="text-sm font-black text-blue-900 mt-2 m-0">{{ formatTimeSpent(testResult()?.timeSpentSeconds) }}</p>
+        </div>
+      </div>
+
+      <!-- POST-TEST UNLOCKED ANNOUNCEMENT (IF PRE-TEST) -->
+      <div *ngIf="testType() === 'pre'"
+           class="bg-gradient-to-r from-amber-50 to-emerald-50 border-2 border-emerald-400 rounded-2xl p-4 my-6 text-right max-w-2xl mx-auto flex items-center justify-between gap-4 shadow-sm">
+        <div class="flex items-center gap-3">
+          <span class="material-icons text-3xl text-emerald-600">lock_open</span>
+          <div>
+            <h4 class="font-bold text-gray-900 text-sm m-0">تهانينا! تم فتح الاختبار التحصيلي البعدي</h4>
+            <p class="text-xs text-gray-600 m-0 mt-0.5">يمكنك الآن التوجه للدروس والمعمل الافتراضي ثم أداء الاختبار البعدي.</p>
+          </div>
+        </div>
+        <a [routerLink]="['/tests', 'post']"
+           class="btn-primary bg-emerald-600 hover:bg-emerald-700 text-xs md:text-sm px-4 py-2 flex-shrink-0">
+          بدء البعدي الآن
+        </a>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex flex-wrap justify-center gap-3 mt-6 pt-4 border-t border-gray-100">
+        <a routerLink="/tests" class="btn-primary px-6 py-2.5 flex items-center gap-1.5">
+          <span class="material-icons text-base">dashboard</span>
+          العودة لمركز الاختبارات
+        </a>
+
+        <button (click)="restartExam()"
+                class="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl transition-colors border border-gray-300 flex items-center gap-1.5">
+          <span class="material-icons text-base">refresh</span>
+          إعادة أداء الاختبار
+        </button>
+      </div>
+    </div>
+
+    <!-- QUESTIONS REVIEW TITLE -->
+    <div class="bg-gray-100 rounded-xl p-4 mb-4 flex justify-between items-center text-right">
+      <div>
+        <h3 class="text-lg font-bold text-gray-900 m-0">مراجعة الأسئلة والإجابات النموذجية</h3>
+        <p class="text-xs text-gray-500 m-0">مقارنة إجابتك بالحل الصحيح المعتمد</p>
+      </div>
+      <span class="px-3 py-1 bg-white rounded-lg text-xs font-bold text-gray-700 border border-gray-300">
+        45 سؤالاً
+      </span>
+    </div>
+
+    <!-- REVIEW CARDS FOR ALL 45 QUESTIONS -->
+    <div class="space-y-4">
+      <div *ngFor="let q of questions()" class="review-card">
+        <div class="flex gap-3 md:gap-4 items-start">
+          <span class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 font-bold text-white text-sm"
+                [class.bg-emerald-600]="isQuestionCorrect(q)"
+                [class.bg-rose-500]="!isQuestionCorrect(q)">
+            {{ q.id }}
+          </span>
+
+          <div class="flex-1">
+            <div class="flex flex-wrap items-center gap-2 mb-3">
+              <h3 class="text-base font-bold text-gray-900 m-0">{{ q.text }}</h3>
+              <span *ngIf="isQuestionCorrect(q)" class="text-xs font-bold bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">
+                إجابة صحيحة ✓
+              </span>
+              <span *ngIf="!isQuestionCorrect(q) && selectedAnswers()[q.id]" class="text-xs font-bold bg-rose-100 text-rose-700 px-2 py-0.5 rounded-full">
+                إجابة خاطئة ✗
+              </span>
+              <span *ngIf="!selectedAnswers()[q.id]" class="text-xs font-bold bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full">
+                لم يتم الإجابة ⚠️
+              </span>
+            </div>
+
+            <div class="grid grid-cols-1 gap-2">
+              <div *ngFor="let opt of q.options"
+                   class="review-option"
+                   [class.correct]="isOptionCorrect(q, opt)"
+                   [class.wrong]="isOptionSelected(q.id, opt) && !isOptionCorrect(q, opt)">
+                <div class="flex items-start justify-between gap-3">
+                  <span class="text-gray-800 text-sm">{{ opt }}</span>
+                  <span *ngIf="isOptionCorrect(q, opt)" class="text-emerald-700 text-xs font-black whitespace-nowrap bg-emerald-50 px-2 py-0.5 rounded">
+                    الحل الصحيح ✓
+                  </span>
+                  <span *ngIf="isOptionSelected(q.id, opt) && !isOptionCorrect(q, opt)" class="text-rose-700 text-xs font-black whitespace-nowrap bg-rose-50 px-2 py-0.5 rounded">
+                    إجابتك المختارة ✗
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <p class="text-xs text-amber-800 mt-2 mb-0 font-bold" *ngIf="!selectedAnswers()[q.id]">
+              ⚠️ لم تقم باختيار أي إجابة لهذا السؤال أثناء الاختبار.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>

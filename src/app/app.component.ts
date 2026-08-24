@@ -5,7 +5,7 @@ import { ButtonSoundService, UiSound } from './core/services/button-sound.servic
 const SOUND_TARGET =
   'button, a.btn-primary, a.btn-action, a.btn-secondary, .tool-btn, .sidebar-btn, .sidebar-btn-sub, .option-btn, .option-row, .submit-btn, .reset-btn, .back-btn, .add-btn, .delete-btn, .close-btn, .home-btn, .category-card, [role="button"], input[type="radio"], input[type="checkbox"], label:has(input[type="radio"]), label:has(input[type="checkbox"]), [data-sound]';
 
-const TEST_ROUTES = ['/pre-test', '/performance-test', '/judging', '/question-bank'];
+const TEST_ROUTES = ['/tests', '/pre-test', '/post-test', '/performance-test', '/judging', '/question-bank'];
 
 @Component({
   selector: 'app-root',

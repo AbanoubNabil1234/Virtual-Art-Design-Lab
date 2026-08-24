@@ -35,12 +35,26 @@ export const routes: Routes = [
                 loadComponent: () => import('./features/definitions/design-skills.component').then(m => m.DesignSkillsComponent)
             },
             {
+                path: 'tests',
+                loadComponent: () => import('./features/tests/tests-hub.component').then(m => m.TestsHubComponent)
+            },
+            {
+                path: 'tests/:type',
+                loadComponent: () => import('./features/tests/test-runner.component').then(m => m.TestRunnerComponent)
+            },
+            {
                 path: 'performance-test',
                 loadComponent: () => import('./features/performance-test/performance-test.component').then(m => m.PerformanceTestComponent)
             },
             {
                 path: 'pre-test',
-                loadComponent: () => import('./features/pre-test/pre-test.component').then(m => m.PreTestComponent)
+                redirectTo: 'tests/pre',
+                pathMatch: 'full'
+            },
+            {
+                path: 'post-test',
+                redirectTo: 'tests/post',
+                pathMatch: 'full'
             },
             {
                 path: 'judging',
