@@ -19,11 +19,8 @@ import { ModuleService } from '../../../core/services/module.service';
       <a routerLink="/definition/concepts" routerLinkActive="active" class="sidebar-btn">مفاهيم التصميم</a>
       <a routerLink="/definition/skills" routerLinkActive="active" class="sidebar-btn">مهارات التصميم</a>
       
-      <!-- 2. Achievement Tests (Pre & Post) -->
+      <!-- 2. Achievement & Performance Tests Hub -->
       <a routerLink="/tests" routerLinkActive="active" class="sidebar-btn">الاختبارات</a>
-      
-      <!-- 3. Performance Test -->
-      <a routerLink="/performance-test" routerLinkActive="active" class="sidebar-btn">الاختبار الأدائي (ب)</a>
 
       <!-- 4. Lessons List -->
       <button class="sidebar-btn flex justify-between items-center w-full" 
