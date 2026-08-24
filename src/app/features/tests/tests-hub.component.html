@@ -1,4 +1,4 @@
-<div class="max-w-7xl mx-auto p-2 sm:p-4 md:p-6 animate-fade-in">
+<div class="max-w-6xl mx-auto p-3 sm:p-4 md:p-6 animate-fade-in">
 
   <!-- HEADER / INTRO -->
   <div class="bg-gradient-to-r from-[#1a1a2e] to-[#2a2a48] text-white rounded-2xl p-5 md:p-7 mb-6 shadow-xl border border-white/10 relative overflow-hidden">
@@ -57,99 +57,85 @@
     </div>
   </div>
 
-  <!-- TESTS CARDS GRID -->
-  <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-5 mb-8 items-stretch">
+  <!-- STACKED VERTICAL TESTS CARDS LIST -->
+  <div class="space-y-5 mb-8">
 
     <!-- 1. PRE-TEST CARD -->
-    <div class="test-card bg-white rounded-2xl border-2 border-[#6b4226]/20 shadow-md p-5 flex flex-col justify-between h-full">
-      <div class="flex-1 flex flex-col justify-between">
-        <div>
-          <!-- Top Badges Row -->
-          <div class="flex items-center justify-between gap-1.5 mb-3.5 flex-wrap">
-            <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-[#6b4226]/10 text-[#6b4226] border border-[#6b4226]/20 whitespace-nowrap">
-              القياس المعرفي الأول
-            </span>
-
-            <span *ngIf="!preResult().completed && !preInProgress" class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-gray-100 text-gray-600 border border-gray-200 whitespace-nowrap">
-              لم يبدأ بعد
-            </span>
-            <span *ngIf="!preResult().completed && preInProgress" class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-300 whitespace-nowrap">
-              قيد الإجراء
-            </span>
-            <span *ngIf="preResult().completed" class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1 whitespace-nowrap">
-              <span class="material-icons text-xs">check_circle</span>
-              مكتمل
-            </span>
+    <div class="test-card bg-white rounded-2xl border-2 border-[#6b4226]/20 shadow-md p-5 md:p-6 transition-all">
+      <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-5 text-right">
+        
+        <!-- Right side: Icon & Title & Subtitle -->
+        <div class="flex items-start gap-4 flex-1">
+          <div class="w-12 h-12 rounded-2xl bg-[#6b4226]/10 text-[#6b4226] flex items-center justify-center flex-shrink-0 shadow-sm mt-0.5">
+            <span class="material-icons text-2xl">assignment</span>
           </div>
-
-          <!-- Card Header -->
-          <div class="flex items-start gap-3 mb-4">
-            <div class="w-10 h-10 rounded-xl bg-[#6b4226]/10 text-[#6b4226] flex items-center justify-center flex-shrink-0">
-              <span class="material-icons text-xl">assignment</span>
-            </div>
-            <div>
-              <h2 class="text-lg font-bold text-gray-900 m-0 leading-tight">الاختبار التحصيلي القبلي</h2>
-              <p class="text-[11px] text-gray-500 mt-1 leading-snug">يقيس المستوى المعرفي الأولي قبل دراسة المفاهيم</p>
-            </div>
-          </div>
-
-          <!-- Meta Key-Value Details -->
-          <div class="bg-gray-50 border border-gray-100 rounded-xl p-3 mb-4 space-y-2 text-xs text-gray-700">
-            <div class="flex justify-between items-center gap-2">
-              <span class="text-gray-500 font-semibold whitespace-nowrap">عدد الأسئلة:</span>
-              <span class="font-bold text-gray-800 text-left">45 سؤالاً (اختيار من متعدد)</span>
-            </div>
-            <div class="flex justify-between items-center gap-2">
-              <span class="text-gray-500 font-semibold whitespace-nowrap">الوقت المحدد:</span>
-              <span class="font-bold text-gray-800 text-left">45 دقيقة</span>
-            </div>
-            <div class="flex justify-between items-center gap-2" *ngIf="preResult().completed">
-              <span class="text-gray-500 font-semibold whitespace-nowrap">النتيجة المسجلة:</span>
-              <span class="font-black text-emerald-700 text-left">
-                {{ preResult().score }} من {{ preResult().totalQuestions }} ({{ getScorePercentage(preResult().score, preResult().totalQuestions) }}%)
+          <div>
+            <div class="flex items-center gap-2 mb-1.5 flex-wrap">
+              <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#6b4226]/10 text-[#6b4226] border border-[#6b4226]/20 whitespace-nowrap">
+                القياس المعرفي الأول
+              </span>
+              <span *ngIf="!preResult().completed && !preInProgress" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-gray-100 text-gray-600 border border-gray-200 whitespace-nowrap">
+                لم يبدأ بعد
+              </span>
+              <span *ngIf="!preResult().completed && preInProgress" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300 whitespace-nowrap">
+                قيد الإجراء
+              </span>
+              <span *ngIf="preResult().completed" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1 whitespace-nowrap">
+                <span class="material-icons text-xs">check_circle</span>
+                مكتمل
               </span>
             </div>
-            <div class="flex justify-between items-center gap-2" *ngIf="preResult().completed && preResult().timeSpentSeconds">
-              <span class="text-gray-500 font-semibold whitespace-nowrap">الوقت المستغرق:</span>
-              <span class="font-bold text-gray-800 text-left">{{ formatTime(preResult().timeSpentSeconds) }}</span>
-            </div>
-          </div>
-
-          <div *ngIf="preResult().completed" class="mb-4">
-            <div class="inline-block px-3 py-1 rounded-lg text-xs font-bold border"
-                 [ngClass]="getPerformanceRating(preResult().score, preResult().totalQuestions).colorClass">
-              التقدير: {{ getPerformanceRating(preResult().score, preResult().totalQuestions).label }}
-            </div>
+            <h2 class="text-xl font-bold text-gray-900 m-0">الاختبار التحصيلي القبلي</h2>
+            <p class="text-xs text-gray-500 mt-1 m-0">يقيس المستوى المعرفي الأولي قبل دراسة مفاهيم وتطبيقات التصميم الفني</p>
           </div>
         </div>
 
-        <!-- Action Buttons -->
-        <div class="pt-3 border-t border-gray-100 mt-auto">
+        <!-- Middle: Meta details box -->
+        <div class="w-full md:w-auto bg-gray-50 border border-gray-100 rounded-xl p-3.5 flex-shrink-0 text-xs min-w-[240px]">
+          <div class="flex justify-between items-center gap-4 mb-1.5">
+            <span class="text-gray-500 font-semibold whitespace-nowrap">عدد الأسئلة:</span>
+            <span class="font-bold text-gray-800">45 سؤالاً (اختيار من متعدد)</span>
+          </div>
+          <div class="flex justify-between items-center gap-4 mb-1.5">
+            <span class="text-gray-500 font-semibold whitespace-nowrap">الوقت المحدد:</span>
+            <span class="font-bold text-gray-800">45 دقيقة</span>
+          </div>
+          <div *ngIf="preResult().completed" class="flex justify-between items-center gap-4 pt-1.5 border-t border-gray-200">
+            <span class="text-gray-500 font-semibold whitespace-nowrap">النتيجة:</span>
+            <span class="font-black text-emerald-700">
+              {{ preResult().score }} / {{ preResult().totalQuestions }} ({{ getScorePercentage(preResult().score, preResult().totalQuestions) }}%)
+            </span>
+          </div>
+        </div>
+
+        <!-- Left side: Action Button -->
+        <div class="w-full md:w-48 flex-shrink-0">
           <a *ngIf="!preResult().completed"
              [routerLink]="['/tests', 'pre']"
-             class="btn-primary w-full text-center justify-center py-2.5 shadow-md hover:shadow-lg flex items-center gap-2 text-sm">
+             class="btn-primary w-full text-center justify-center py-3 shadow-md hover:shadow-lg flex items-center gap-2 text-sm font-bold">
             <span class="material-icons text-base">play_arrow</span>
-            <span>{{ preInProgress ? 'استئناف الاختبار القبلي' : 'بدء الاختبار القبلي' }}</span>
+            <span>{{ preInProgress ? 'استئناف الاختبار' : 'بدء الاختبار القبلي' }}</span>
           </a>
 
-          <div *ngIf="preResult().completed" class="flex flex-col sm:flex-row gap-2">
+          <div *ngIf="preResult().completed" class="flex flex-col gap-2">
             <a [routerLink]="['/tests', 'pre']"
-               class="btn-primary flex-1 text-center justify-center py-2 text-xs md:text-sm flex items-center gap-1.5">
+               class="btn-primary w-full text-center justify-center py-2.5 text-xs font-bold flex items-center gap-1.5">
               <span class="material-icons text-base">visibility</span>
               <span>مراجعة الحلول</span>
             </a>
 
             <button (click)="confirmReset('pre')"
-                    class="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-lg transition-colors border border-gray-300 whitespace-nowrap">
-              إعادة
+                    class="w-full py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-600 text-xs font-bold rounded-lg transition-colors border border-gray-300">
+              إعادة الاختبار
             </button>
           </div>
         </div>
+
       </div>
     </div>
 
     <!-- 2. POST-TEST CARD -->
-    <div class="test-card bg-white rounded-2xl border-2 shadow-md p-5 flex flex-col justify-between h-full relative"
+    <div class="test-card bg-white rounded-2xl border-2 shadow-md p-5 md:p-6 transition-all relative"
          [class.border-emerald-200]="isPostUnlocked()"
          [class.border-gray-200]="!isPostUnlocked()"
          [class.locked-card]="!isPostUnlocked()">
@@ -159,200 +145,178 @@
            class="absolute inset-0 bg-gray-900/5 backdrop-blur-[1px] pointer-events-none rounded-2xl flex items-center justify-center z-10">
       </div>
 
-      <div class="flex-1 flex flex-col justify-between relative z-20">
-        <div>
-          <!-- Top Badges Row -->
-          <div class="flex items-center justify-between gap-1.5 mb-3.5 flex-wrap">
-            <span class="px-2.5 py-1 rounded-full text-[11px] font-bold whitespace-nowrap"
-                  [class.bg-emerald-100]="isPostUnlocked()"
-                  [class.text-emerald-800]="isPostUnlocked()"
-                  [class.bg-gray-100]="!isPostUnlocked()"
-                  [class.text-gray-500]="!isPostUnlocked()">
-              القياس المعرفي النهائي
-            </span>
-
-            <span *ngIf="!isPostUnlocked()"
-                  class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-100 text-rose-700 border border-rose-200 flex items-center gap-1 whitespace-nowrap">
-              <span class="material-icons text-xs">lock</span>
-              مغلق (يتطلب القبلي)
-            </span>
-
-            <span *ngIf="isPostUnlocked() && !postResult().completed && !postInProgress"
-                  class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1 pulse-badge whitespace-nowrap">
-              <span class="material-icons text-xs">lock_open</span>
-              متاح الآن للبدء
-            </span>
-
-            <span *ngIf="isPostUnlocked() && !postResult().completed && postInProgress"
-                  class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-300 whitespace-nowrap">
-              قيد الإجراء
-            </span>
-
-            <span *ngIf="postResult().completed"
-                  class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1 whitespace-nowrap">
-              <span class="material-icons text-xs">check_circle</span>
-              مكتمل
-            </span>
+      <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-5 text-right relative z-20">
+        
+        <!-- Right side: Icon & Title & Subtitle -->
+        <div class="flex items-start gap-4 flex-1">
+          <div class="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-sm mt-0.5"
+               [class.bg-emerald-100]="isPostUnlocked()"
+               [class.text-emerald-700]="isPostUnlocked()"
+               [class.bg-gray-200]="!isPostUnlocked()"
+               [class.text-gray-400]="!isPostUnlocked()">
+            <span class="material-icons text-2xl">{{ isPostUnlocked() ? 'verified' : 'lock' }}</span>
           </div>
+          <div>
+            <div class="flex items-center gap-2 mb-1.5 flex-wrap">
+              <span class="px-2.5 py-0.5 rounded-full text-xs font-bold whitespace-nowrap"
+                    [class.bg-emerald-100]="isPostUnlocked()"
+                    [class.text-emerald-800]="isPostUnlocked()"
+                    [class.bg-gray-100]="!isPostUnlocked()"
+                    [class.text-gray-500]="!isPostUnlocked()">
+                القياس المعرفي النهائي
+              </span>
 
-          <!-- Card Header -->
-          <div class="flex items-start gap-3 mb-4">
-            <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-                 [class.bg-emerald-100]="isPostUnlocked()"
-                 [class.text-emerald-700]="isPostUnlocked()"
-                 [class.bg-gray-200]="!isPostUnlocked()"
-                 [class.text-gray-400]="!isPostUnlocked()">
-              <span class="material-icons text-xl">{{ isPostUnlocked() ? 'verified' : 'lock' }}</span>
-            </div>
-            <div>
-              <h2 class="text-lg font-bold m-0 leading-tight" [class.text-gray-900]="isPostUnlocked()" [class.text-gray-500]="!isPostUnlocked()">
-                الاختبار التحصيلي البعدي
-              </h2>
-              <p class="text-[11px] text-gray-500 mt-1 leading-snug">يقيس التحصيل المعرفي النهائي بعد المعمل الافتراضي</p>
-            </div>
-          </div>
+              <span *ngIf="!isPostUnlocked()"
+                    class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-100 text-rose-700 border border-rose-200 flex items-center gap-1 whitespace-nowrap">
+                <span class="material-icons text-xs">lock</span>
+                مغلق (يتطلب القبلي)
+              </span>
 
-          <!-- Lock Warning or Meta Key-Value Details -->
-          <div *ngIf="!isPostUnlocked()" class="bg-rose-50 border border-rose-200 rounded-xl p-3.5 mb-4 text-xs text-rose-800 text-right leading-relaxed flex items-start gap-2">
-            <span class="material-icons text-rose-600 text-base flex-shrink-0 mt-0.5">info</span>
-            <div>
-              <strong>تنبيه:</strong> يلزم إكمال وتسليم <strong>الاختبار القبلي</strong> لفتح البعدي تلقائياً.
-            </div>
-          </div>
+              <span *ngIf="isPostUnlocked() && !postResult().completed && !postInProgress"
+                    class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1 pulse-badge whitespace-nowrap">
+                <span class="material-icons text-xs">lock_open</span>
+                متاح الآن للبدء
+              </span>
 
-          <div *ngIf="isPostUnlocked()" class="bg-gray-50 border border-gray-100 rounded-xl p-3 mb-4 space-y-2 text-xs text-gray-700">
-            <div class="flex justify-between items-center gap-2">
-              <span class="text-gray-500 font-semibold whitespace-nowrap">عدد الأسئلة:</span>
-              <span class="font-bold text-gray-800 text-left">45 سؤالاً (مطابق للقبلي)</span>
-            </div>
-            <div class="flex justify-between items-center gap-2">
-              <span class="text-gray-500 font-semibold whitespace-nowrap">الوقت المحدد:</span>
-              <span class="font-bold text-gray-800 text-left">45 دقيقة</span>
-            </div>
-            <div class="flex justify-between items-center gap-2" *ngIf="postResult().completed">
-              <span class="text-gray-500 font-semibold whitespace-nowrap">النتيجة المسجلة:</span>
-              <span class="font-black text-emerald-700 text-left">
-                {{ postResult().score }} من {{ postResult().totalQuestions }} ({{ getScorePercentage(postResult().score, postResult().totalQuestions) }}%)
+              <span *ngIf="isPostUnlocked() && !postResult().completed && postInProgress"
+                    class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300 whitespace-nowrap">
+                قيد الإجراء
+              </span>
+
+              <span *ngIf="postResult().completed"
+                    class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1 whitespace-nowrap">
+                <span class="material-icons text-xs">check_circle</span>
+                مكتمل
               </span>
             </div>
-            <div class="flex justify-between items-center gap-2" *ngIf="postResult().completed && postResult().timeSpentSeconds">
-              <span class="text-gray-500 font-semibold whitespace-nowrap">الوقت المستغرق:</span>
-              <span class="font-bold text-gray-800 text-left">{{ formatTime(postResult().timeSpentSeconds) }}</span>
-            </div>
+            <h2 class="text-xl font-bold m-0" [class.text-gray-900]="isPostUnlocked()" [class.text-gray-500]="!isPostUnlocked()">
+              الاختبار التحصيلي البعدي
+            </h2>
+            <p class="text-xs text-gray-500 mt-1 m-0">يقيس مدى التحصيل المعرفي النهائي بعد التفاعل مع دروس ومفاهيم المعمل الافتراضي</p>
+          </div>
+        </div>
+
+        <!-- Middle: Meta details box or Lock Alert -->
+        <div class="w-full md:w-auto flex-shrink-0 text-xs min-w-[240px]">
+          <div *ngIf="!isPostUnlocked()" class="bg-rose-50 border border-rose-200 rounded-xl p-3 text-rose-800 text-right leading-relaxed flex items-center gap-2">
+            <span class="material-icons text-rose-600 text-base flex-shrink-0">info</span>
+            <span>يلزم إكمال وتسليم <strong>الاختبار القبلي</strong> لفتح هذا الاختبار.</span>
           </div>
 
-          <div *ngIf="postResult().completed" class="mb-4">
-            <div class="inline-block px-3 py-1 rounded-lg text-xs font-bold border"
-                 [ngClass]="getPerformanceRating(postResult().score, postResult().totalQuestions).colorClass">
-              التقدير: {{ getPerformanceRating(postResult().score, postResult().totalQuestions).label }}
+          <div *ngIf="isPostUnlocked()" class="bg-gray-50 border border-gray-100 rounded-xl p-3.5">
+            <div class="flex justify-between items-center gap-4 mb-1.5">
+              <span class="text-gray-500 font-semibold whitespace-nowrap">عدد الأسئلة:</span>
+              <span class="font-bold text-gray-800">45 سؤالاً (مطابق للقبلي)</span>
+            </div>
+            <div class="flex justify-between items-center gap-4 mb-1.5">
+              <span class="text-gray-500 font-semibold whitespace-nowrap">الوقت المحدد:</span>
+              <span class="font-bold text-gray-800">45 دقيقة</span>
+            </div>
+            <div *ngIf="postResult().completed" class="flex justify-between items-center gap-4 pt-1.5 border-t border-gray-200">
+              <span class="text-gray-500 font-semibold whitespace-nowrap">النتيجة:</span>
+              <span class="font-black text-emerald-700">
+                {{ postResult().score }} / {{ postResult().totalQuestions }} ({{ getScorePercentage(postResult().score, postResult().totalQuestions) }}%)
+              </span>
             </div>
           </div>
         </div>
 
-        <!-- Action Buttons -->
-        <div class="pt-3 border-t border-gray-100 mt-auto">
+        <!-- Left side: Action Button -->
+        <div class="w-full md:w-48 flex-shrink-0">
           <button *ngIf="!isPostUnlocked()"
                   disabled
-                  class="w-full py-2.5 px-3 bg-gray-200 text-gray-400 text-xs font-bold rounded-lg cursor-not-allowed flex items-center justify-center gap-1.5">
+                  class="w-full py-3 px-3 bg-gray-200 text-gray-400 text-xs font-bold rounded-xl cursor-not-allowed flex items-center justify-center gap-1.5">
             <span class="material-icons text-base">lock</span>
             <span>مغلق - أكمل القبلي أولاً</span>
           </button>
 
           <a *ngIf="isPostUnlocked() && !postResult().completed"
              [routerLink]="['/tests', 'post']"
-             class="btn-primary bg-emerald-600 hover:bg-emerald-700 w-full text-center justify-center py-2.5 shadow-md hover:shadow-lg flex items-center gap-2 text-sm">
+             class="btn-primary bg-emerald-600 hover:bg-emerald-700 w-full text-center justify-center py-3 shadow-md hover:shadow-lg flex items-center gap-2 text-sm font-bold">
             <span class="material-icons text-base">play_arrow</span>
-            <span>{{ postInProgress ? 'استئناف الاختبار البعدي' : 'بدء الاختبار البعدي' }}</span>
+            <span>{{ postInProgress ? 'استئناف الاختبار' : 'بدء الاختبار البعدي' }}</span>
           </a>
 
-          <div *ngIf="isPostUnlocked() && postResult().completed" class="flex flex-col sm:flex-row gap-2">
+          <div *ngIf="isPostUnlocked() && postResult().completed" class="flex flex-col gap-2">
             <a [routerLink]="['/tests', 'post']"
-               class="btn-primary bg-emerald-600 hover:bg-emerald-700 flex-1 text-center justify-center py-2 text-xs md:text-sm flex items-center gap-1.5">
+               class="btn-primary bg-emerald-600 hover:bg-emerald-700 w-full text-center justify-center py-2.5 text-xs font-bold flex items-center gap-1.5">
               <span class="material-icons text-base">visibility</span>
               <span>مراجعة الحلول</span>
             </a>
 
             <button (click)="confirmReset('post')"
-                    class="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-lg transition-colors border border-gray-300 whitespace-nowrap">
-              إعادة
+                    class="w-full py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-600 text-xs font-bold rounded-lg transition-colors border border-gray-300">
+              إعادة الاختبار
             </button>
           </div>
         </div>
+
       </div>
     </div>
 
     <!-- 3. PERFORMANCE TEST (B) CARD -->
-    <div class="test-card bg-white rounded-2xl border-2 border-amber-500/40 shadow-md p-5 flex flex-col justify-between h-full">
-      <div class="flex-1 flex flex-col justify-between">
-        <div>
-          <!-- Top Badges Row -->
-          <div class="flex items-center justify-between gap-1.5 mb-3.5 flex-wrap">
-            <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-100 text-amber-900 border border-amber-300 whitespace-nowrap">
-              القياس الأدائي (عملي)
-            </span>
-
-            <span *ngIf="perfCompletedCount() === 0" class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-gray-100 text-gray-600 border border-gray-200 whitespace-nowrap">
-              لم يبدأ بعد
-            </span>
-            <span *ngIf="perfCompletedCount() > 0 && !isPerfCompleted()" class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-300 pulse-badge whitespace-nowrap">
-              إنجاز {{ perfCompletedCount() }} من 10
-            </span>
-            <span *ngIf="isPerfCompleted()" class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1 whitespace-nowrap">
-              <span class="material-icons text-xs">check_circle</span>
-              مكتمل بالكامل
-            </span>
+    <div class="test-card bg-white rounded-2xl border-2 border-amber-500/40 shadow-md p-5 md:p-6 transition-all">
+      <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-5 text-right">
+        
+        <!-- Right side: Icon & Title & Subtitle -->
+        <div class="flex items-start gap-4 flex-1">
+          <div class="w-12 h-12 rounded-2xl bg-amber-900/10 text-amber-900 flex items-center justify-center flex-shrink-0 shadow-sm mt-0.5">
+            <span class="material-icons text-2xl">palette</span>
           </div>
-
-          <!-- Card Header -->
-          <div class="flex items-start gap-3 mb-4">
-            <div class="w-10 h-10 rounded-xl bg-amber-900/10 text-amber-900 flex items-center justify-center flex-shrink-0">
-              <span class="material-icons text-xl">palette</span>
-            </div>
-            <div>
-              <h2 class="text-lg font-bold text-gray-900 m-0 leading-tight">الاختبار الأدائي (ب)</h2>
-              <p class="text-[11px] text-gray-500 mt-1 leading-snug">قياس المهارات التطبيقية المتسلسلة للمهام</p>
-            </div>
-          </div>
-
-          <!-- Meta Key-Value Details -->
-          <div class="bg-amber-50/70 border border-amber-200/60 rounded-xl p-3 mb-4 space-y-2 text-xs text-gray-700">
-            <div class="flex justify-between items-center gap-2">
-              <span class="text-gray-600 font-semibold whitespace-nowrap">المهام العملية:</span>
-              <span class="font-bold text-gray-800 text-left">10 مهام متسلسلة</span>
-            </div>
-            <div class="flex justify-between items-center gap-2">
-              <span class="text-gray-600 font-semibold whitespace-nowrap">زمن المهمة:</span>
-              <span class="font-bold text-gray-800 text-left">10 دقائق / لكل مهمة</span>
-            </div>
-            <div class="flex justify-between items-center gap-2">
-              <span class="text-gray-600 font-semibold whitespace-nowrap">المهام المنجزة:</span>
-              <span class="font-black text-amber-900 text-left">
-                إنجاز {{ perfCompletedCount() }} من {{ perfTotalTasks() }} مهام
+          <div>
+            <div class="flex items-center gap-2 mb-1.5 flex-wrap">
+              <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300 whitespace-nowrap">
+                القياس الأدائي (عملي)
+              </span>
+              <span *ngIf="perfCompletedCount() === 0" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-gray-100 text-gray-600 border border-gray-200 whitespace-nowrap">
+                لم يبدأ بعد
+              </span>
+              <span *ngIf="perfCompletedCount() > 0 && !isPerfCompleted()" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300 pulse-badge whitespace-nowrap">
+                إنجاز {{ perfCompletedCount() }} من 10 مهام
+              </span>
+              <span *ngIf="isPerfCompleted()" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1 whitespace-nowrap">
+                <span class="material-icons text-xs">check_circle</span>
+                مكتمل بالكامل
               </span>
             </div>
-            <!-- Progress Bar -->
-            <div class="w-full bg-amber-200/50 rounded-full h-2 overflow-hidden mt-1.5">
-              <div class="bg-amber-600 h-2 rounded-full transition-all duration-500"
-                   [style.width.%]="(perfCompletedCount() / perfTotalTasks()) * 100">
-              </div>
-            </div>
+            <h2 class="text-xl font-bold text-gray-900 m-0">الاختبار الأدائي (ب)</h2>
+            <p class="text-xs text-gray-500 mt-1 m-0">قياس المهارات التطبيقية والتنفيذية عبر 10 مهام متسلسلة داخل المعمل الافتراضي</p>
           </div>
+        </div>
 
-          <div class="mb-4">
-            <div class="inline-block px-2.5 py-1 rounded-lg text-xs font-bold border bg-amber-100/80 text-amber-900 border-amber-300/70">
-              طبيعة الاختبار: تطبيق عملي في المعمل
+        <!-- Middle: Meta details box -->
+        <div class="w-full md:w-auto bg-amber-50/70 border border-amber-200/60 rounded-xl p-3.5 flex-shrink-0 text-xs min-w-[240px]">
+          <div class="flex justify-between items-center gap-4 mb-1.5">
+            <span class="text-gray-600 font-semibold whitespace-nowrap">المهام العملية:</span>
+            <span class="font-bold text-gray-800">10 مهام متسلسلة</span>
+          </div>
+          <div class="flex justify-between items-center gap-4 mb-1.5">
+            <span class="text-gray-600 font-semibold whitespace-nowrap">زمن المهمة:</span>
+            <span class="font-bold text-gray-800">10 دقائق / لكل مهمة</span>
+          </div>
+          <div class="flex justify-between items-center gap-4 pt-1.5 border-t border-amber-200/60">
+            <span class="text-gray-600 font-semibold whitespace-nowrap">التقدم الحاصل:</span>
+            <span class="font-black text-amber-900">
+              إنجاز {{ perfCompletedCount() }} من {{ perfTotalTasks() }} مهام
+            </span>
+          </div>
+          <!-- Progress bar -->
+          <div class="w-full bg-amber-200/50 rounded-full h-1.5 overflow-hidden mt-2">
+            <div class="bg-amber-600 h-1.5 rounded-full transition-all duration-500"
+                 [style.width.%]="(perfCompletedCount() / perfTotalTasks()) * 100">
             </div>
           </div>
         </div>
 
-        <!-- Action Buttons -->
-        <div class="pt-3 border-t border-gray-100 mt-auto">
+        <!-- Left side: Action Button -->
+        <div class="w-full md:w-48 flex-shrink-0">
           <a routerLink="/performance-test"
-             class="btn-primary bg-amber-800 hover:bg-amber-900 text-white w-full text-center justify-center py-2.5 shadow-md hover:shadow-lg flex items-center gap-2 text-sm">
+             class="btn-primary bg-amber-800 hover:bg-amber-900 text-white w-full text-center justify-center py-3 shadow-md hover:shadow-lg flex items-center gap-2 text-sm font-bold">
             <span class="material-icons text-base">rocket_launch</span>
-            <span>{{ perfCompletedCount() > 0 ? 'استئناف الاختبار الأدائي (ب)' : 'بدء الاختبار الأدائي (ب)' }}</span>
+            <span>{{ perfCompletedCount() > 0 ? 'استئناف الاختبار' : 'بدء الاختبار الأدائي' }}</span>
           </a>
         </div>
+
       </div>
     </div>
 
@@ -373,5 +337,6 @@
   </div>
 
 </div>
+
 
 
