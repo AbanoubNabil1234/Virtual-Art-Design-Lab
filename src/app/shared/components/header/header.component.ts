@@ -29,6 +29,7 @@ import { GlobalSearchComponent } from '../global-search/global-search.component'
     <nav class="sub-nav">
       <a routerLink="/" routerLinkActive="active-tab" [routerLinkActiveOptions]="{exact: true}">الرئيسية</a>
       <a routerLink="/instructions" routerLinkActive="active-tab">التعليمات</a>
+      <a routerLink="/portfolio" routerLinkActive="active-tab" class="font-bold text-amber-300">ملف الإنجاز</a>
       <a routerLink="/lab" routerLinkActive="active-tab">المعمل الافتراضي</a>
       <a routerLink="/chat-room" routerLinkActive="active-tab">غرفة الحوار</a>
       <a routerLink="/email" routerLinkActive="active-tab">البريد الإلكتروني</a>

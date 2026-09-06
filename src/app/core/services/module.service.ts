@@ -40,7 +40,7 @@ export class ModuleService {
             ],
             iconName: 'architecture',
             slides: Array.from(
-                { length: 11 },
+                { length: 10 },
                 (_, index) => `assets/lesson-blueprint-slides/image${index + 1}.png`
             ),
             videoUrl: 'assets/lesson-blueprint-video/lesson-one-demo.mp4',

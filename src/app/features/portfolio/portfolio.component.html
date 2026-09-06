@@ -1,0 +1,1041 @@
+<div class="portfolio-page">
+
+  <!-- ========================================== -->
+  <!-- 1. SCREEN VIEW (Hidden when printing)     -->
+  <!-- ========================================== -->
+  <div class="no-print-wrapper">
+
+    <!-- FEEDBACK ALERT BANNER -->
+    <div *ngIf="importStatus()" 
+         class="mb-4 p-4 rounded-xl flex items-center justify-between text-sm font-medium border"
+         [class.bg-emerald-50]="!importStatus()?.isError"
+         [class.text-emerald-950]="!importStatus()?.isError"
+         [class.border-emerald-200]="!importStatus()?.isError"
+         [class.bg-rose-50]="importStatus()?.isError"
+         [class.text-rose-950]="importStatus()?.isError"
+         [class.border-rose-200]="importStatus()?.isError">
+      <div class="flex items-center gap-2">
+        <span class="material-icons text-lg">{{ importStatus()?.isError ? 'error_outline' : 'check_circle' }}</span>
+        <span class="text-pretty">{{ importStatus()?.message }}</span>
+      </div>
+      <button (click)="importStatus.set(null)" class="text-xs opacity-60 hover:opacity-100 font-mono" aria-label="إغلاق التنبيه">✕</button>
+    </div>
+
+    <!-- STUDENT IDENTITY CARD (Academic, Clear Typography, High Legibility) -->
+    <header class="bg-white rounded-2xl p-6 sm:p-7 border border-stone-200 shadow-sm mb-6">
+      
+      <!-- Top Department Tag -->
+      <div class="flex flex-wrap items-center justify-between gap-2 pb-3 mb-4 border-b border-stone-100 text-xs sm:text-sm text-stone-500 font-medium">
+        <div class="flex items-center gap-2">
+          <span class="material-icons text-amber-800 text-base">school</span>
+          <span class="text-stone-800 font-semibold">المعمل الافتراضي لتنمية مفاهيم ومهارات التصميم لدى طلاب المرحلة الثانوية</span>
+        </div>
+        <div class="font-mono tabular-nums text-stone-500">
+          {{ portfolioService.profile().academicYear || 'العام الدراسي 2025 - 2026' }}
+        </div>
+      </div>
+
+      <!-- Top Row: Student Avatar + Name & Class + Completion Gauge -->
+      <div class="flex flex-col sm:flex-row items-center sm:items-start justify-between gap-5 mb-5">
+        
+        <!-- Right: Avatar + Name + Class Pill -->
+        <div class="flex flex-col sm:flex-row items-center sm:items-start gap-4 text-center sm:text-right">
+          <!-- Student Avatar -->
+          <div class="relative flex-shrink-0">
+            <div class="size-20 sm:size-24 rounded-2xl border-2 border-stone-200 overflow-hidden bg-stone-100 shadow-sm">
+              <img [src]="portfolioService.profile().avatarUrl || 'assets/portfolio/avatar-default.svg'" 
+                   alt="الصورة الشخصية للطالب" 
+                   class="size-full object-cover">
+            </div>
+            <button (click)="openEditProfile()" 
+                    class="absolute -bottom-1.5 -left-1.5 bg-white hover:bg-stone-50 text-stone-800 border border-stone-300 size-7 rounded-lg shadow-sm flex items-center justify-center transition-colors"
+                    aria-label="تعديل الصورة والبيانات الشخصية"
+                    title="تعديل الصورة والبيانات الشخصية">
+              <span class="material-icons text-xs">photo_camera</span>
+            </button>
+          </div>
+
+          <!-- Name & Class -->
+          <div>
+            <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2 mb-1.5">
+              <span class="px-2.5 py-0.5 bg-amber-100/80 text-amber-950 border border-amber-300 rounded-md text-xs font-bold">
+                ملف الإنجاز الرقمي
+              </span>
+              <span class="px-2.5 py-0.5 bg-stone-100 text-stone-700 rounded-md text-xs font-semibold">
+                {{ portfolioService.profile().academicGroup }}
+              </span>
+            </div>
+
+            <h1 class="text-2xl sm:text-3xl font-black text-stone-900 tracking-normal leading-tight mb-1">
+              {{ portfolioService.profile().fullName }}
+            </h1>
+
+            <p class="text-xs sm:text-sm text-stone-500 font-medium">
+              مقرر: {{ portfolioService.profile().specialization }}
+            </p>
+          </div>
+        </div>
+
+        <!-- Left: Completion Gauge & Edit Button -->
+        <div class="flex items-center gap-4 bg-stone-50 border border-stone-200/90 rounded-2xl p-3 sm:px-4 sm:py-3 flex-shrink-0">
+          <div class="relative flex items-center justify-center">
+            <svg class="size-16 transform -rotate-90">
+              <circle cx="32" cy="32" r="26" stroke="currentColor" stroke-width="5" class="text-stone-200" fill="transparent"/>
+              <circle cx="32" cy="32" r="26" stroke="currentColor" stroke-width="5" class="text-amber-800" 
+                      fill="transparent"
+                      stroke-dasharray="163.3"
+                      [attr.stroke-dashoffset]="163.3 - (163.3 * portfolioService.overallCompletionScore()) / 100"
+                      stroke-linecap="round"/>
+            </svg>
+            <span class="absolute text-sm font-black text-stone-900 font-mono tabular-nums">
+              {{ portfolioService.overallCompletionScore() }}%
+            </span>
+          </div>
+
+          <div class="flex flex-col text-right">
+            <span class="text-xs text-stone-500 font-semibold">معدل الإنجاز</span>
+            <span class="text-xs text-stone-900 font-bold mb-1.5">متطلبات المعمل</span>
+            <button (click)="openEditProfile()" 
+                    class="text-xs font-bold bg-stone-900 hover:bg-stone-800 text-white py-1 px-2.5 rounded-md transition-colors flex items-center gap-1 shadow-sm">
+              <span class="material-icons text-xs">edit</span>
+              <span>تعديل</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Middle Row: 3 Dedicated Key-Value Metadata Cards (Full Width Grid!) -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
+        
+        <!-- Card 1: Academic ID -->
+        <div class="bg-stone-50/90 border border-stone-200/80 rounded-xl p-3.5 flex items-center gap-3">
+          <span class="size-9 rounded-lg bg-amber-100 text-amber-900 flex items-center justify-center flex-shrink-0">
+            <span class="material-icons text-lg">badge</span>
+          </span>
+          <div class="min-w-0">
+            <div class="text-xs text-stone-500 font-medium">الرقم الأكاديمي</div>
+            <div dir="ltr" class="text-sm sm:text-base font-black text-stone-900 font-mono tracking-wider tabular-nums truncate">
+              {{ portfolioService.profile().studentId }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 2: Subject & Stage -->
+        <div class="bg-stone-50/90 border border-stone-200/80 rounded-xl p-3.5 flex items-center gap-3">
+          <span class="size-9 rounded-lg bg-amber-100 text-amber-900 flex items-center justify-center flex-shrink-0">
+            <span class="material-icons text-lg">palette</span>
+          </span>
+          <div class="min-w-0">
+            <div class="text-xs text-stone-500 font-medium">المقرر والتخصص</div>
+            <div class="text-sm font-bold text-stone-900 truncate">
+              {{ portfolioService.profile().specialization }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 3: Academic Supervision -->
+        <div class="bg-stone-50/90 border border-stone-200/80 rounded-xl p-3.5 flex items-center gap-3">
+          <span class="size-9 rounded-lg bg-amber-100 text-amber-900 flex items-center justify-center flex-shrink-0">
+            <span class="material-icons text-lg">psychology</span>
+          </span>
+          <div class="min-w-0">
+            <div class="text-xs text-stone-500 font-medium">الإشراف الأكاديمي</div>
+            <div class="text-sm font-bold text-stone-900 truncate">
+              {{ portfolioService.profile().supervisorName }}
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Bottom Row: Educational Vision Statement (Full Width!) -->
+      <div class="bg-amber-50/50 border border-amber-200/80 rounded-xl p-4 text-sm leading-relaxed text-stone-800 mb-5">
+        <span class="font-bold text-amber-950">💡 الهدف والرؤية التعليمية للطالب: </span>
+        <span class="text-stone-700">{{ portfolioService.profile().educationalVision }}</span>
+      </div>
+
+      <!-- Action Toolbar (Organized, High Contrast, Clear Buttons) -->
+      <div class="mt-6 pt-4 border-t border-stone-200 flex flex-wrap items-center justify-between gap-3">
+        <div class="flex flex-wrap items-center gap-2">
+          <!-- Official Print / PDF Button -->
+          <button (click)="printReport()" 
+                  class="bg-amber-800 hover:bg-amber-900 text-white font-bold px-4 py-2 rounded-lg text-sm flex items-center gap-2 shadow-sm transition-colors">
+            <span class="material-icons text-base">print</span>
+            <span>طباعة التقرير المعتمد (PDF)</span>
+          </button>
+
+          <!-- Export .labportfolio Button -->
+          <button (click)="exportPortfolio()" 
+                  class="bg-white hover:bg-stone-50 text-stone-800 border border-stone-300 px-3.5 py-2 rounded-lg text-sm font-semibold flex items-center gap-1.5 transition-colors">
+            <span class="material-icons text-base text-stone-500">download</span>
+            <span>تصدير ملف الإنجاز (.labportfolio)</span>
+          </button>
+
+          <!-- Import Portfolio Button -->
+          <button (click)="triggerImportInput(importInput)" 
+                  class="bg-white hover:bg-stone-50 text-stone-800 border border-stone-300 px-3.5 py-2 rounded-lg text-sm font-semibold flex items-center gap-1.5 transition-colors">
+            <span class="material-icons text-base text-stone-500">upload_file</span>
+            <span>استيراد ملف إنجاز سابق</span>
+          </button>
+          <input #importInput type="file" (change)="handleImportFile($event)" accept=".labportfolio,.json" style="display:none">
+        </div>
+
+        <!-- Add Artwork Quick Button -->
+        <button (click)="openAddArtworkModal()" 
+                class="bg-white hover:bg-amber-50 text-amber-950 border border-amber-400 px-3.5 py-2 rounded-lg text-sm font-bold flex items-center gap-1.5 transition-colors">
+          <span class="material-icons text-base text-amber-800">add_photo_alternate</span>
+          <span>إضافة تصميم للمعرض</span>
+        </button>
+      </div>
+
+    </header>
+
+    <!-- NAVIGATION TABS (Segmented Control Baseline) -->
+    <nav class="bg-stone-100 p-1.5 rounded-xl flex flex-wrap gap-1 border border-stone-200 mb-6" aria-label="أقسام ملف الإنجاز">
+      <button (click)="setTab('overview')" 
+              [class.tab-active]="activeTab() === 'overview'" 
+              class="tab-btn flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-bold transition-colors">
+        <span class="material-icons text-base">insights</span>
+        <span>التحصيل المعرفي والنمو</span>
+      </button>
+
+      <button (click)="setTab('artworks')" 
+              [class.tab-active]="activeTab() === 'artworks'" 
+              class="tab-btn flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-bold transition-colors">
+        <span class="material-icons text-base">palette</span>
+        <span>معرض التصميمات الفنية ({{ portfolioService.artworks().length }})</span>
+      </button>
+
+      <button (click)="setTab('modules')" 
+              [class.tab-active]="activeTab() === 'modules'" 
+              class="tab-btn flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-bold transition-colors">
+        <span class="material-icons text-base">auto_stories</span>
+        <span>الموديولات والدروس ({{ portfolioService.modulesStats().completedCount }}/{{ portfolioService.modulesStats().totalCount }})</span>
+      </button>
+
+      <button (click)="setTab('performance')" 
+              [class.tab-active]="activeTab() === 'performance'" 
+              class="tab-btn flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-bold transition-colors">
+        <span class="material-icons text-base">draw</span>
+        <span>مهام الأداء المهاري ({{ portfolioService.performanceStats().completedCount }}/{{ portfolioService.performanceStats().totalCount }})</span>
+      </button>
+
+      <button (click)="setTab('badges')" 
+              [class.tab-active]="activeTab() === 'badges'" 
+              class="tab-btn flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-bold transition-colors">
+        <span class="material-icons text-base">military_tech</span>
+        <span>أوسمة التميز والإنجاز ({{ portfolioService.unlockedBadgesCount() }})</span>
+      </button>
+
+      <button (click)="setTab('notes')" 
+              [class.tab-active]="activeTab() === 'notes'" 
+              class="tab-btn flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-bold transition-colors">
+        <span class="material-icons text-base">edit_note</span>
+        <span>مفكرة التأملات الفنية ({{ portfolioService.notesCount() }})</span>
+      </button>
+    </nav>
+
+    <!-- ========================================== -->
+    <!-- TAB 1: OVERVIEW & COGNITIVE               -->
+    <!-- ========================================== -->
+    <div *ngIf="activeTab() === 'overview'" class="space-y-6">
+      
+      <!-- Cognitive Growth Card (Pre-Test vs Post-Test) -->
+      <section class="bg-white rounded-2xl p-6 sm:p-7 border border-stone-200 shadow-sm">
+        
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6 border-b border-stone-100 pb-4">
+          <div>
+            <h2 class="text-xl font-bold text-stone-900 flex items-center gap-2 text-balance">
+              <span class="material-icons text-amber-800">psychology</span>
+              <span>سجل التحصيل المعرفي لمفاهيم التصميم (القبلي مقابل البعدي)</span>
+            </h2>
+            <p class="text-sm text-stone-500 mt-1 text-pretty">
+              مقارنة بين مستوى المعارف السابقة قبل دراسة الموديولات ومستوى التحصيل المكتسب بعد إتمام دروس المعمل
+            </p>
+          </div>
+
+          <div *ngIf="portfolioService.cognitiveStats().hasGrowth" 
+               class="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-900 border border-emerald-300 px-3.5 py-1.5 rounded-lg text-sm font-bold tabular-nums">
+            <span class="material-icons text-base text-emerald-700">trending_up</span>
+            <span>معدل النمو المعرفي: +{{ portfolioService.cognitiveStats().gain }}%</span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          
+          <!-- Pre-Test Box -->
+          <div class="bg-stone-50 rounded-xl p-5 border border-stone-200 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-3">
+                <span class="text-sm font-bold text-stone-700">الاختبار القبلي (المدخلي)</span>
+                <span *ngIf="portfolioService.cognitiveStats().preCompleted" 
+                      class="px-2.5 py-1 bg-emerald-100 text-emerald-900 text-xs font-bold rounded-md">
+                  تم الإجراء بنجاح ✓
+                </span>
+                <span *ngIf="!portfolioService.cognitiveStats().preCompleted" 
+                      class="px-2.5 py-1 bg-stone-200 text-stone-700 text-xs font-medium rounded-md">
+                  لم يتم الإجراء بعد
+                </span>
+              </div>
+
+              <div class="flex items-baseline gap-2 mb-2">
+                <span class="text-4xl font-extrabold text-stone-900 font-mono tabular-nums">
+                  {{ portfolioService.cognitiveStats().preScore }}%
+                </span>
+                <span class="text-sm text-stone-500 font-medium">الدرجة المحققة</span>
+              </div>
+
+              <p class="text-xs sm:text-sm text-stone-500 mb-4 tabular-nums">
+                تاريخ أداء الاختبار: {{ formatDate(portfolioService.cognitiveStats().preDate) }}
+              </p>
+            </div>
+
+            <a routerLink="/tests/pre" class="inline-flex items-center gap-1 text-sm font-bold text-amber-900 hover:text-amber-700 pt-3 border-t border-stone-200/80">
+              <span>عرض تفاصيل ومراجعة الاختبار القبلي</span>
+              <span class="material-icons text-sm">arrow_back</span>
+            </a>
+          </div>
+
+          <!-- Post-Test Box -->
+          <div class="bg-stone-50 rounded-xl p-5 border border-stone-200 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-3">
+                <span class="text-sm font-bold text-stone-900">الاختبار البعدي (النهائي)</span>
+                <span *ngIf="portfolioService.cognitiveStats().postCompleted" 
+                      class="px-2.5 py-1 bg-emerald-100 text-emerald-900 text-xs font-bold rounded-md">
+                  مكتمل ومجتاز ✓
+                </span>
+                <span *ngIf="!portfolioService.cognitiveStats().postCompleted" 
+                      class="px-2.5 py-1 bg-amber-100 text-amber-900 text-xs font-bold rounded-md">
+                  بانتظار إتمام الموديولات
+                </span>
+              </div>
+
+              <div class="flex items-baseline gap-2 mb-2">
+                <span class="text-4xl font-extrabold text-stone-900 font-mono tabular-nums">
+                  {{ portfolioService.cognitiveStats().postScore }}%
+                </span>
+                <span class="text-sm text-stone-500 font-medium">الدرجة المحققة</span>
+              </div>
+
+              <p class="text-xs sm:text-sm text-stone-500 mb-4 tabular-nums">
+                تاريخ أداء الاختبار: {{ formatDate(portfolioService.cognitiveStats().postDate) }}
+              </p>
+            </div>
+
+            <a routerLink="/tests/post" class="inline-flex items-center gap-1 text-sm font-bold text-amber-900 hover:text-amber-700 pt-3 border-t border-stone-200/80">
+              <span>عرض تفاصيل ومراجعة الاختبار البعدي</span>
+              <span class="material-icons text-sm">arrow_back</span>
+            </a>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- Quick Metrics Grid -->
+      <section class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        
+        <div class="bg-white p-5 rounded-xl border border-stone-200 shadow-sm flex flex-col items-center text-center">
+          <span class="size-11 rounded-xl bg-stone-100 text-stone-800 flex items-center justify-center mb-3">
+            <span class="material-icons text-2xl">auto_stories</span>
+          </span>
+          <span class="text-2xl sm:text-3xl font-extrabold text-stone-900 font-mono tabular-nums">
+            {{ portfolioService.modulesStats().completedCount }} / {{ portfolioService.modulesStats().totalCount }}
+          </span>
+          <span class="text-sm text-stone-600 mt-1 font-semibold text-balance">الدروس المكتملة</span>
+        </div>
+
+        <div class="bg-white p-5 rounded-xl border border-stone-200 shadow-sm flex flex-col items-center text-center">
+          <span class="size-11 rounded-xl bg-stone-100 text-stone-800 flex items-center justify-center mb-3">
+            <span class="material-icons text-2xl">draw</span>
+          </span>
+          <span class="text-2xl sm:text-3xl font-extrabold text-stone-900 font-mono tabular-nums">
+            {{ portfolioService.performanceStats().completedCount }} / {{ portfolioService.performanceStats().totalCount }}
+          </span>
+          <span class="text-sm text-stone-600 mt-1 font-semibold text-balance">المهام الأدائية المنجزة</span>
+        </div>
+
+        <div class="bg-white p-5 rounded-xl border border-stone-200 shadow-sm flex flex-col items-center text-center">
+          <span class="size-11 rounded-xl bg-stone-100 text-stone-800 flex items-center justify-center mb-3">
+            <span class="material-icons text-2xl">palette</span>
+          </span>
+          <span class="text-2xl sm:text-3xl font-extrabold text-stone-900 font-mono tabular-nums">
+            {{ portfolioService.artworks().length }}
+          </span>
+          <span class="text-sm text-stone-600 mt-1 font-semibold text-balance">التصميمات الموثقة</span>
+        </div>
+
+        <div class="bg-white p-5 rounded-xl border border-stone-200 shadow-sm flex flex-col items-center text-center">
+          <span class="size-11 rounded-xl bg-stone-100 text-stone-800 flex items-center justify-center mb-3">
+            <span class="material-icons text-2xl">military_tech</span>
+          </span>
+          <span class="text-2xl sm:text-3xl font-extrabold text-stone-900 font-mono tabular-nums">
+            {{ portfolioService.unlockedBadgesCount() }} / {{ portfolioService.badges().length }}
+          </span>
+          <span class="text-sm text-stone-600 mt-1 font-semibold text-balance">الأوسمة المستحقة</span>
+        </div>
+
+      </section>
+
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 2: ARTWORKS GALLERY                   -->
+    <!-- ========================================== -->
+    <div *ngIf="activeTab() === 'artworks'" class="space-y-6">
+      <section class="bg-white rounded-2xl p-6 sm:p-7 border border-stone-200 shadow-sm">
+        
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 border-b border-stone-100 pb-4">
+          <div>
+            <h2 class="text-xl font-bold text-stone-900 flex items-center gap-2 text-balance">
+              <span class="material-icons text-amber-800">collections</span>
+              <span>معرض التصميمات الفنية واللوحات المنتجة بالمعمل</span>
+            </h2>
+            <p class="text-sm text-stone-500 mt-1 text-pretty">
+              توثيق شامل للأعمال واللوحات الرقمية التي أبدعها الطالب داخل المعمل الافتراضي توظيفاً لمفاهيم وأسس التصميم
+            </p>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <a routerLink="/lab" 
+               class="bg-amber-800 hover:bg-amber-900 text-white font-bold text-sm px-4 py-2 rounded-lg flex items-center gap-1.5 transition-colors shadow-sm">
+              <span class="material-icons text-base">palette</span>
+              <span>إنتاج وتصميم لوحة في المعمل</span>
+            </a>
+
+            <button (click)="openAddArtworkModal()" 
+                    class="bg-white hover:bg-stone-50 text-stone-800 border border-stone-300 font-semibold text-sm px-3.5 py-2 rounded-lg flex items-center gap-1.5 transition-colors">
+              <span class="material-icons text-base text-stone-500">file_upload</span>
+              <span>رفع تصميم</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Empty State -->
+        <div *ngIf="portfolioService.artworks().length === 0" 
+             class="text-center py-14 px-6 border-2 border-dashed border-stone-200 rounded-xl bg-stone-50/50">
+          <span class="material-icons text-5xl text-stone-400 mb-3">palette</span>
+          <h3 class="text-base font-bold text-stone-800 mb-2 text-balance">لا توجد أعمال فنية موثقة في المعرض حتى الآن</h3>
+          <p class="text-sm text-stone-600 max-w-lg mx-auto mb-5 leading-relaxed text-pretty">
+            ادخل إلى المعمل الافتراضي، واستخدم أدوات التشكيل والتلوين لرسم تكوينك الفني، ثم اضغط على زر "حفظ في ملف الإنجاز" ليتم إدراجه تلقائياً في هذا المعرض والتقرير المعتمد.
+          </p>
+          <a routerLink="/lab" 
+             class="inline-flex items-center gap-2 bg-stone-900 hover:bg-stone-800 text-white font-bold text-sm px-5 py-2.5 rounded-lg transition-colors shadow">
+            <span class="material-icons text-base">draw</span>
+            <span>بدء الرسم وإنتاج لوحة الآن</span>
+          </a>
+        </div>
+
+        <!-- Artwork Grid -->
+        <div *ngIf="portfolioService.artworks().length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          <article *ngFor="let art of portfolioService.artworks()" 
+                   class="bg-white rounded-xl border border-stone-200 overflow-hidden hover:border-stone-300 transition-colors flex flex-col shadow-sm">
+            
+            <!-- Artwork Image Preview -->
+            <div class="aspect-[4/3] bg-stone-100 overflow-hidden relative cursor-pointer group" 
+                 (click)="viewArtwork(art)">
+              <img [src]="art.imageUrl" [alt]="art.title" class="size-full object-contain">
+              <div class="absolute inset-0 bg-stone-900/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <span class="bg-white text-stone-900 px-3.5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-md">
+                  <span class="material-icons text-sm">fullscreen</span>
+                  <span>معاينة مكبرة</span>
+                </span>
+              </div>
+            </div>
+
+            <!-- Artwork Details -->
+            <div class="p-4 flex-1 flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between gap-2 mb-2">
+                  <span class="text-xs px-2.5 py-0.5 rounded-md font-bold bg-amber-50 text-amber-900 border border-amber-200">
+                    {{ art.source === 'lab' ? '🎨 رسم المعمل الافتراضي' : '📁 تصميم خارجي' }}
+                  </span>
+                  <span class="text-xs text-stone-400 tabular-nums">{{ formatDate(art.createdAt) }}</span>
+                </div>
+                <h3 class="font-bold text-base text-stone-900 mb-1 truncate text-balance">{{ art.title }}</h3>
+                <p class="text-xs sm:text-sm text-stone-600 line-clamp-2 leading-relaxed text-pretty">{{ art.description || 'عمل فني تم إنتاجه وتوثيقه بواسطة الطالب.' }}</p>
+              </div>
+
+              <!-- Delete Button -->
+              <div class="mt-4 pt-3 border-t border-stone-100 flex justify-end">
+                <button (click)="deleteArtwork(art.id)" 
+                        class="text-xs text-stone-400 hover:text-rose-600 font-semibold flex items-center gap-1 transition-colors"
+                        aria-label="حذف هذا العمل من ملف الإنجاز">
+                  <span class="material-icons text-xs">delete</span>
+                  <span>حذف اللوحة</span>
+                </button>
+              </div>
+            </div>
+
+          </article>
+        </div>
+
+      </section>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 3: MODULES TRACK                      -->
+    <!-- ========================================== -->
+    <div *ngIf="activeTab() === 'modules'" class="space-y-6">
+      <section class="bg-white rounded-2xl p-6 sm:p-7 border border-stone-200 shadow-sm">
+        
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 border-b border-stone-100 pb-4">
+          <div>
+            <h2 class="text-xl font-bold text-stone-900 flex items-center gap-2 text-balance">
+              <span class="material-icons text-amber-800">auto_stories</span>
+              <span>سجل دراسة الموديولات والدروس التعليمية الستة</span>
+            </h2>
+            <p class="text-sm text-stone-500 mt-1 text-pretty">
+              متابعة إتمام الدروس النظرية والتطبيقية واجتياز الاختبارات التقويمية لكل درس
+            </p>
+          </div>
+
+          <div class="text-sm font-bold text-stone-800 bg-stone-100 px-3.5 py-1.5 rounded-lg tabular-nums">
+            نسبة إنجاز الدروس: <span class="text-amber-800 font-black">{{ portfolioService.modulesStats().completionPct }}%</span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div *ngFor="let mod of portfolioService.modulesStats().list" 
+               class="p-4 sm:p-5 rounded-xl border transition-colors flex items-start justify-between gap-4 bg-white"
+               [class.border-emerald-300]="mod.completed"
+               [class.border-stone-200]="!mod.completed">
+            
+            <div class="flex items-start gap-3.5">
+              <span class="size-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                    [class.bg-emerald-100]="mod.completed"
+                    [class.text-emerald-800]="mod.completed"
+                    [class.bg-stone-100]="!mod.completed"
+                    [class.text-stone-400]="!mod.completed">
+                <span class="material-icons text-xl">{{ mod.completed ? 'check_circle' : 'menu_book' }}</span>
+              </span>
+
+              <div>
+                <h3 class="font-bold text-sm sm:text-base text-stone-900 mb-1.5 text-balance leading-snug">{{ mod.title }}</h3>
+                <div class="flex flex-wrap items-center gap-2 text-xs sm:text-sm">
+                  <span *ngIf="mod.completed" class="text-emerald-800 font-bold tabular-nums">
+                    ✓ تم الاجتياز (الدرجة: {{ mod.score }}%)
+                  </span>
+                  <span *ngIf="!mod.completed" class="text-stone-500 font-medium">
+                    ⏳ بانتظار دراسة الدرس واختباره
+                  </span>
+                  <span *ngIf="mod.completedAt" class="text-stone-400 tabular-nums">
+                    • {{ formatDate(mod.completedAt) }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <a [routerLink]="['/module', mod.id]" 
+               class="px-3 py-1.5 rounded-lg text-xs font-bold border border-stone-300 bg-white text-stone-800 hover:bg-stone-50 transition-colors flex-shrink-0">
+              متابعة الدرس
+            </a>
+
+          </div>
+        </div>
+
+      </section>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 4: PERFORMANCE TEST TRACK             -->
+    <!-- ========================================== -->
+    <div *ngIf="activeTab() === 'performance'" class="space-y-6">
+      <section class="bg-white rounded-2xl p-6 sm:p-7 border border-stone-200 shadow-sm">
+        
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 border-b border-stone-100 pb-4">
+          <div>
+            <h2 class="text-xl font-bold text-stone-900 flex items-center gap-2 text-balance">
+              <span class="material-icons text-amber-800">draw</span>
+              <span>سجل اختبار الأداء المهاري والعملي</span>
+            </h2>
+            <p class="text-sm text-stone-500 mt-1 text-pretty">
+              رصد إنجاز المهام التطبيقية ومهارات التشكيل والتصميم الفني داخل المعمل الافتراضي
+            </p>
+          </div>
+
+          <a routerLink="/performance-test" 
+             class="bg-amber-800 hover:bg-amber-900 text-white font-bold text-sm px-4 py-2 rounded-lg flex items-center gap-1.5 transition-colors shadow-sm">
+            <span>الانتقال لاختبار الأداء</span>
+            <span class="material-icons text-base">arrow_back</span>
+          </a>
+        </div>
+
+        <!-- Task List -->
+        <div class="space-y-3">
+          <div *ngFor="let task of portfolioService.performanceStats().tasks" 
+               class="p-4 sm:p-5 rounded-xl border border-stone-200 bg-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            
+            <div class="flex items-start gap-3.5">
+              <span class="size-8 rounded-lg font-mono font-bold text-sm flex items-center justify-center flex-shrink-0"
+                    [class.bg-emerald-100]="task.completed"
+                    [class.text-emerald-950]="task.completed"
+                    [class.bg-stone-100]="!task.completed"
+                    [class.text-stone-600]="!task.completed">
+                {{ task.id }}
+              </span>
+              <div>
+                <h3 class="font-semibold text-sm sm:text-base text-stone-900 mb-1.5 leading-relaxed text-pretty">{{ task.text }}</h3>
+                <div class="flex flex-wrap items-center gap-2.5 text-xs sm:text-sm text-stone-500 tabular-nums">
+                  <span *ngIf="task.completed" class="text-emerald-800 font-bold">
+                    ✓ تم الإنجاز (استغرق: {{ formatTime(task.timeSpentSeconds) }})
+                  </span>
+                  <span *ngIf="!task.completed" class="text-stone-400 font-medium">
+                    ⏳ قيد التنفيذ أو بانتظار البدء
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <span *ngIf="task.completed" 
+                  class="px-3 py-1 bg-emerald-50 text-emerald-900 border border-emerald-300 text-xs font-bold rounded-lg flex-shrink-0">
+              تم الإنجاز بنجاح ✓
+            </span>
+          </div>
+        </div>
+
+      </section>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 5: ACHIEVEMENT BADGES                 -->
+    <!-- ========================================== -->
+    <div *ngIf="activeTab() === 'badges'" class="space-y-6">
+      <section class="bg-white rounded-2xl p-6 sm:p-7 border border-stone-200 shadow-sm">
+        
+        <div class="mb-6 border-b border-stone-100 pb-4">
+          <h2 class="text-xl font-bold text-stone-900 flex items-center gap-2 text-balance">
+            <span class="material-icons text-amber-800">military_tech</span>
+            <span>لوحة أوسمة وشارات الإنجاز والتميز الرقمي</span>
+          </h2>
+          <p class="text-sm text-stone-500 mt-1 text-pretty">
+            تُمنح هذه الأوسمة تلقائياً تقديراً لتفوق الطالب في الجوانب المعرفية والمهارية وإنتاج الأعمال الفنية
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div *ngFor="let badge of portfolioService.badges()" 
+               class="p-4 sm:p-5 rounded-xl border transition-colors flex items-start gap-3.5"
+               [class.bg-amber-50]="badge.unlocked"
+               [class.border-amber-300]="badge.unlocked"
+               [class.shadow-sm]="badge.unlocked"
+               [class.bg-stone-50]="!badge.unlocked"
+               [class.border-stone-200]="!badge.unlocked"
+               [class.opacity-50]="!badge.unlocked">
+            
+            <div class="size-11 rounded-xl flex items-center justify-center flex-shrink-0"
+                 [class.bg-amber-100]="badge.unlocked"
+                 [class.text-amber-900]="badge.unlocked"
+                 [class.bg-stone-200]="!badge.unlocked"
+                 [class.text-stone-400]="!badge.unlocked">
+              <span class="material-icons text-2xl">{{ badge.icon }}</span>
+            </div>
+
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center justify-between gap-1 mb-1.5">
+                <h3 class="font-bold text-sm sm:text-base truncate text-balance" 
+                    [class.text-stone-900]="badge.unlocked" 
+                    [class.text-stone-500]="!badge.unlocked">
+                  {{ badge.title }}
+                </h3>
+                <span *ngIf="badge.unlocked" class="text-amber-800 material-icons text-base flex-shrink-0" title="وسام مكتسب">verified</span>
+                <span *ngIf="!badge.unlocked" class="text-stone-400 material-icons text-base flex-shrink-0" title="وسام مقفل">lock</span>
+              </div>
+              <p class="text-xs sm:text-sm text-stone-600 leading-relaxed text-pretty">{{ badge.description }}</p>
+              <div *ngIf="badge.unlocked && badge.unlockedAt" class="text-xs text-stone-500 mt-2 font-medium tabular-nums">
+                تاريخ الاستحقاق: {{ formatDate(badge.unlockedAt) }}
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </section>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 6: NOTES & REFLECTIONS                -->
+    <!-- ========================================== -->
+    <div *ngIf="activeTab() === 'notes'" class="space-y-6">
+      <section class="bg-white rounded-2xl p-6 sm:p-7 border border-stone-200 shadow-sm">
+        
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 border-b border-stone-100 pb-4">
+          <div>
+            <h2 class="text-xl font-bold text-stone-900 flex items-center gap-2 text-balance">
+              <span class="material-icons text-amber-800">edit_note</span>
+              <span>مفكرة التأملات الفنية والملاحظات النقدية</span>
+            </h2>
+            <p class="text-sm text-stone-500 mt-1 text-pretty">
+              الأفكار والرؤى النقدية والملاحظات التي دوّنها الطالب أثناء دراسته وتطبيقاته بالمعمل
+            </p>
+          </div>
+
+          <a routerLink="/notepad" 
+             class="bg-amber-800 hover:bg-amber-900 text-white font-bold text-sm px-4 py-2 rounded-lg flex items-center gap-1.5 transition-colors shadow-sm">
+            <span class="material-icons text-base">edit</span>
+            <span>فتح المفكرة لتدوين جديد</span>
+          </a>
+        </div>
+
+        <div *ngIf="portfolioService.notesCount() === 0" class="text-center py-12 text-stone-400">
+          <span class="material-icons text-4xl mb-2 text-stone-300">note_add</span>
+          <p class="text-sm text-pretty">لم يتم تدوين ملاحظات بعد. انتقل للمفكرة لكتابة أفكارك وتأملاتك الفنية.</p>
+        </div>
+
+        <div *ngIf="portfolioService.notesCount() > 0" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div *ngFor="let note of portfolioService.notes()" 
+               class="bg-stone-50 p-5 rounded-xl border border-stone-200 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-2 pb-2 border-b border-stone-200/60">
+                <h3 class="font-bold text-base text-stone-900 truncate text-balance">{{ note.title }}</h3>
+                <span class="text-xs text-stone-400 font-mono tabular-nums">{{ formatDate(note.updatedAt) }}</span>
+              </div>
+              <p class="text-sm text-stone-700 whitespace-pre-line line-clamp-4 leading-relaxed text-pretty">{{ note.content }}</p>
+            </div>
+          </div>
+        </div>
+
+      </section>
+    </div>
+
+  </div> <!-- /no-print-wrapper -->
+
+
+  <!-- ========================================================= -->
+  <!-- 2. OFFICIAL PRINTABLE REPORT (Visible ONLY when printing) -->
+  <!-- ========================================================= -->
+  <div class="official-print-report hidden print:block">
+    
+    <!-- Report Header -->
+    <header class="report-header text-center border-b-2 border-stone-800 pb-4 mb-6">
+      <div class="flex items-center justify-between mb-2">
+        <div class="text-right text-xs leading-relaxed font-bold">
+          <div>جامعة المنصورة - كلية التربية النوعية</div>
+          <div>قسم المناهج وطرق تدريس التربية الفنية</div>
+          <div>المعمل الافتراضي لتنمية مفاهيم ومهارات التصميم</div>
+        </div>
+        <div class="size-16 rounded-full border-2 border-stone-800 flex items-center justify-center p-1">
+          <span class="text-xs font-bold text-stone-900">معمل التصميم</span>
+        </div>
+        <div class="text-left text-xs leading-relaxed font-mono tabular-nums">
+          <div>التاريخ: {{ formatDate() }}</div>
+          <div>الرقم: #{{ portfolioService.profile().studentId }}</div>
+        </div>
+      </div>
+      
+      <h1 class="text-xl font-bold text-stone-900 mt-2 text-balance">ملف الإنجاز الرقمي المعتمد للطالب</h1>
+      <p class="text-xs text-stone-600 text-pretty">وثيقة إثبات التحصيل المعرفي والأداء المهاري لمقرر تنمية مفاهيم ومهارات التصميم</p>
+    </header>
+
+    <!-- Student Identity Section -->
+    <section class="report-section mb-6">
+      <h2 class="text-sm font-bold text-stone-900 bg-stone-100 p-2 rounded border border-stone-300 mb-2">
+        أولاً: البيانات الشخصية والأكاديمية للطالب
+      </h2>
+      <table class="report-table w-full text-xs border-collapse">
+        <tbody>
+          <tr>
+            <td class="font-bold bg-stone-50 w-1/4 p-2 border border-stone-300">اسم الطالب رباعي:</td>
+            <td class="p-2 border border-stone-300 font-bold text-sm">{{ portfolioService.profile().fullName }}</td>
+            <td class="font-bold bg-stone-50 w-1/4 p-2 border border-stone-300">الرقم التعريفي (الكود):</td>
+            <td class="p-2 border border-stone-300 font-mono tabular-nums">{{ portfolioService.profile().studentId }}</td>
+          </tr>
+          <tr>
+            <td class="font-bold bg-stone-50 p-2 border border-stone-300">المجموعة / الشعبة:</td>
+            <td class="p-2 border border-stone-300">{{ portfolioService.profile().academicGroup }}</td>
+            <td class="font-bold bg-stone-50 p-2 border border-stone-300">المقرر والتخصص:</td>
+            <td class="p-2 border border-stone-300">{{ portfolioService.profile().specialization }}</td>
+          </tr>
+          <tr>
+            <td class="font-bold bg-stone-50 p-2 border border-stone-300">العام الدراسي:</td>
+            <td class="p-2 border border-stone-300 font-mono">{{ portfolioService.profile().academicYear || 'العام الدراسي 2025 - 2026' }}</td>
+            <td class="font-bold bg-stone-50 p-2 border border-stone-300">المشرف الأكاديمي:</td>
+            <td class="p-2 border border-stone-300">{{ portfolioService.profile().supervisorName }}</td>
+          </tr>
+          <tr>
+            <td class="font-bold bg-stone-50 p-2 border border-stone-300">نسبة الإنجاز الكلية:</td>
+            <td colspan="3" class="p-2 border border-stone-300 font-bold tabular-nums">{{ portfolioService.overallCompletionScore() }}%</td>
+          </tr>
+          <tr>
+            <td class="font-bold bg-stone-50 p-2 border border-stone-300">الهدف / الرؤية الفنية:</td>
+            <td colspan="3" class="p-2 border border-stone-300">{{ portfolioService.profile().educationalVision }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Cognitive Growth Section -->
+    <section class="report-section mb-6">
+      <h2 class="text-sm font-bold text-stone-900 bg-stone-100 p-2 rounded border border-stone-300 mb-2">
+        ثانياً: نتائج التحصيل المعرفي (الاختبار القبلي والبعدي)
+      </h2>
+      <table class="report-table w-full text-xs border-collapse text-center">
+        <thead>
+          <tr class="bg-stone-200">
+            <th class="p-2 border border-stone-300">نوع الاختبار</th>
+            <th class="p-2 border border-stone-300">حالة الإجراء</th>
+            <th class="p-2 border border-stone-300">الدرجة المكتسبة</th>
+            <th class="p-2 border border-stone-300">تاريخ الإجراء</th>
+            <th class="p-2 border border-stone-300">نسبة النمو المعرفي</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="p-2 border border-stone-300 font-bold">الاختبار القبلي (المدخلي)</td>
+            <td class="p-2 border border-stone-300">{{ portfolioService.cognitiveStats().preCompleted ? 'مكتمل ✓' : 'غير مكتمل' }}</td>
+            <td class="p-2 border border-stone-300 font-bold tabular-nums">{{ portfolioService.cognitiveStats().preScore }}%</td>
+            <td class="p-2 border border-stone-300 tabular-nums">{{ formatDate(portfolioService.cognitiveStats().preDate) }}</td>
+            <td rowspan="2" class="p-2 border border-stone-300 font-bold tabular-nums text-sm">
+              +{{ portfolioService.cognitiveStats().gain }}%
+            </td>
+          </tr>
+          <tr>
+            <td class="p-2 border border-stone-300 font-bold">الاختبار البعدي (النهائي)</td>
+            <td class="p-2 border border-stone-300">{{ portfolioService.cognitiveStats().postCompleted ? 'مكتمل ✓' : 'غير مكتمل' }}</td>
+            <td class="p-2 border border-stone-300 font-bold tabular-nums">{{ portfolioService.cognitiveStats().postScore }}%</td>
+            <td class="p-2 border border-stone-300 tabular-nums">{{ formatDate(portfolioService.cognitiveStats().postDate) }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Modules Progress Section -->
+    <section class="report-section mb-6">
+      <h2 class="text-sm font-bold text-stone-900 bg-stone-100 p-2 rounded border border-stone-300 mb-2">
+        ثالثاً: تقدم الموديولات التعليمية (الدروس النظرية والتطبيقية)
+      </h2>
+      <table class="report-table w-full text-xs border-collapse text-center">
+        <thead>
+          <tr class="bg-stone-200">
+            <th class="p-1.5 border border-stone-300 text-right">عنوان الموديول / الدرس</th>
+            <th class="p-1.5 border border-stone-300">حالة الإتمام</th>
+            <th class="p-1.5 border border-stone-300">درجة الاختبار</th>
+            <th class="p-1.5 border border-stone-300">تاريخ الإنجاز</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let mod of portfolioService.modulesStats().list">
+            <td class="p-1.5 border border-stone-300 text-right font-medium">{{ mod.title }}</td>
+            <td class="p-1.5 border border-stone-300">{{ mod.completed ? 'مجتاز ✓' : 'غير مكتمل' }}</td>
+            <td class="p-1.5 border border-stone-300 font-bold tabular-nums">{{ mod.completed ? mod.score + '%' : '-' }}</td>
+            <td class="p-1.5 border border-stone-300 tabular-nums">{{ formatDate(mod.completedAt) }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Artworks Portfolio Section -->
+    <section class="report-section mb-6 page-break-inside-avoid">
+      <h2 class="text-sm font-bold text-stone-900 bg-stone-100 p-2 rounded border border-stone-300 mb-2">
+        رابعاً: معرض التصميمات واللوحات الفنية المنتجة بالمعمل
+      </h2>
+      <div *ngIf="portfolioService.artworks().length === 0" class="text-center p-3 text-xs text-stone-500 border border-stone-300">
+        لم يتم إدراج لوحات فنية في المعرض حتى تاريخه.
+      </div>
+      <div *ngIf="portfolioService.artworks().length > 0" class="grid grid-cols-3 gap-3">
+        <div *ngFor="let art of portfolioService.artworks() | slice:0:6" class="border border-stone-300 p-2 rounded text-center">
+          <img [src]="art.imageUrl" [alt]="art.title" class="w-full h-24 object-contain mb-1 bg-stone-50">
+          <div class="text-[11px] font-bold text-stone-900 truncate">{{ art.title }}</div>
+          <div class="text-[9px] text-stone-500 tabular-nums">{{ formatDate(art.createdAt) }}</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Official Signatures Box -->
+    <footer class="report-signatures mt-8 pt-4 border-t-2 border-stone-800 grid grid-cols-3 gap-4 text-center text-xs">
+      <div>
+        <div class="font-bold mb-8">توقيع الطالب المعد للملف:</div>
+        <div class="border-b border-stone-400 w-32 mx-auto"></div>
+      </div>
+      <div>
+        <div class="font-bold mb-8">توقيع أستاذ المادة والمشرف:</div>
+        <div class="border-b border-stone-400 w-32 mx-auto"></div>
+      </div>
+      <div>
+        <div class="font-bold mb-8">ختم الاعتماد الأكاديمي:</div>
+        <div class="size-16 border-2 border-dashed border-stone-400 rounded-full mx-auto flex items-center justify-center text-[10px] text-stone-400">
+          ختم المعمل
+        </div>
+      </div>
+    </footer>
+
+  </div> <!-- /official-print-report -->
+
+
+  <!-- ========================================== -->
+  <!-- 3. MODALS (Popups)                        -->
+  <!-- ========================================== -->
+
+  <!-- EDIT PROFILE MODAL -->
+  <div *ngIf="showEditProfileModal()" 
+       class="fixed inset-0 z-50 bg-stone-950/50 backdrop-blur-[2px] flex items-center justify-center p-4"
+       role="dialog"
+       aria-modal="true"
+       aria-labelledby="edit-profile-title">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-stone-200 max-h-[90vh] overflow-y-auto">
+      
+      <div class="flex items-center justify-between pb-3 border-b border-stone-200 mb-4">
+        <h2 id="edit-profile-title" class="font-bold text-base text-stone-900 flex items-center gap-2">
+          <span class="material-icons text-amber-800">manage_accounts</span>
+          <span>تعديل البيانات الأكاديمية للطالب</span>
+        </h2>
+        <button (click)="showEditProfileModal.set(false)" class="text-stone-400 hover:text-stone-700 font-bold" aria-label="إغلاق النافذة">✕</button>
+      </div>
+
+      <form (ngSubmit)="saveProfile()" class="space-y-4 text-sm">
+        
+        <div>
+          <label for="profileFullName" class="block font-bold text-stone-700 mb-1">الاسم رباعي:</label>
+          <input id="profileFullName" type="text" [(ngModel)]="profileForm.fullName" name="fullName" required 
+                 class="w-full border border-stone-300 rounded-lg p-2.5 focus:border-stone-900 focus:outline-none">
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label for="profileStudentId" class="block font-bold text-stone-700 mb-1">الرقم الأكاديمي / المدرسي:</label>
+            <input id="profileStudentId" type="text" [(ngModel)]="profileForm.studentId" name="studentId" 
+                   class="w-full border border-stone-300 rounded-lg p-2.5 focus:border-stone-900 focus:outline-none">
+          </div>
+          <div>
+            <label for="profileAcademicGroup" class="block font-bold text-stone-700 mb-1">الشعبة أو المجموعة:</label>
+            <input id="profileAcademicGroup" type="text" [(ngModel)]="profileForm.academicGroup" name="academicGroup" 
+                   class="w-full border border-stone-300 rounded-lg p-2.5 focus:border-stone-900 focus:outline-none">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <label for="profileSpecialization" class="block font-bold text-stone-700 mb-1">المقرر الدراسي:</label>
+            <input id="profileSpecialization" type="text" [(ngModel)]="profileForm.specialization" name="specialization" 
+                   class="w-full border border-stone-300 rounded-lg p-2.5 focus:border-stone-900 focus:outline-none">
+          </div>
+          <div>
+            <label for="profileAcademicYear" class="block font-bold text-stone-700 mb-1">العام الدراسي:</label>
+            <input id="profileAcademicYear" type="text" [(ngModel)]="profileForm.academicYear" name="academicYear" placeholder="العام الدراسي 2025 - 2026"
+                   class="w-full border border-stone-300 rounded-lg p-2.5 focus:border-stone-900 focus:outline-none font-mono">
+          </div>
+          <div>
+            <label for="profileSupervisor" class="block font-bold text-stone-700 mb-1">المشرف الأكاديمي:</label>
+            <input id="profileSupervisor" type="text" [(ngModel)]="profileForm.supervisorName" name="supervisorName" 
+                   class="w-full border border-stone-300 rounded-lg p-2.5 focus:border-stone-900 focus:outline-none">
+          </div>
+        </div>
+
+        <div>
+          <label for="profileVision" class="block font-bold text-stone-700 mb-1">الرؤية والهدف التعليمي للطالب:</label>
+          <textarea id="profileVision" rows="3" [(ngModel)]="profileForm.educationalVision" name="educationalVision" 
+                    class="w-full border border-stone-300 rounded-lg p-2.5 focus:border-stone-900 focus:outline-none leading-relaxed"></textarea>
+        </div>
+
+        <div>
+          <label for="profileAvatarUpload" class="block font-bold text-stone-700 mb-1">تغيير الصورة الشخصية:</label>
+          <input id="profileAvatarUpload" type="file" (change)="handleAvatarUpload($event)" accept="image/*" 
+                 class="w-full text-xs text-stone-500 file:mr-2 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-stone-100 file:text-stone-800 hover:file:bg-stone-200">
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-3 border-t border-stone-200">
+          <button type="button" (click)="showEditProfileModal.set(false)" 
+                  class="px-4 py-2 rounded-lg text-stone-600 hover:bg-stone-100 font-bold">
+            إلغاء
+          </button>
+          <button type="submit" 
+                  class="px-5 py-2 rounded-lg bg-stone-900 hover:bg-stone-800 text-white font-bold transition-colors shadow">
+            حفظ البيانات
+          </button>
+        </div>
+
+      </form>
+
+    </div>
+  </div>
+
+  <!-- ADD ARTWORK MODAL -->
+  <div *ngIf="showAddArtworkModal()" 
+       class="fixed inset-0 z-50 bg-stone-950/50 backdrop-blur-[2px] flex items-center justify-center p-4"
+       role="dialog"
+       aria-modal="true"
+       aria-labelledby="add-artwork-title">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-stone-200">
+      
+      <div class="flex items-center justify-between pb-3 border-b border-stone-200 mb-4">
+        <h2 id="add-artwork-title" class="font-bold text-base text-stone-900 flex items-center gap-2">
+          <span class="material-icons text-amber-800">add_photo_alternate</span>
+          <span>إضافة تصميم فني لمعرض ملف الإنجاز</span>
+        </h2>
+        <button (click)="showAddArtworkModal.set(false)" class="text-stone-400 hover:text-stone-700 font-bold" aria-label="إغلاق النافذة">✕</button>
+      </div>
+
+      <div class="space-y-4 text-sm">
+        <div>
+          <label for="artworkTitle" class="block font-bold text-stone-700 mb-1">عنوان اللوحة / التصميم:</label>
+          <input id="artworkTitle" type="text" [(ngModel)]="newArtworkTitle" placeholder="مثال: تكوين بالنقاط والخطوط" 
+                 class="w-full border border-stone-300 rounded-lg p-2.5 focus:border-stone-900 focus:outline-none">
+        </div>
+
+        <div>
+          <label for="artworkDescription" class="block font-bold text-stone-700 mb-1">الوصف الفني والتحليلي (اختياري):</label>
+          <textarea id="artworkDescription" rows="2" [(ngModel)]="newArtworkDescription" placeholder="عناصر التصميم المستخدمة والأسس التشكيلية..." 
+                    class="w-full border border-stone-300 rounded-lg p-2.5 focus:border-stone-900 focus:outline-none leading-relaxed"></textarea>
+        </div>
+
+        <div>
+          <label for="artworkFileUpload" class="block font-bold text-stone-700 mb-1">اختيار ملف الصورة:</label>
+          <input id="artworkFileUpload" type="file" (change)="handleArtworkUpload($event)" accept="image/*" 
+                 class="w-full text-xs text-stone-500 file:mr-2 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-stone-100 file:text-stone-800">
+        </div>
+
+        <div *ngIf="newArtworkImageBase64" class="aspect-video bg-stone-100 rounded-lg overflow-hidden border border-stone-200 p-1">
+          <img [src]="newArtworkImageBase64" alt="معاينة الصورة المرفوعة" class="size-full object-contain">
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-3 border-t border-stone-200">
+          <button (click)="showAddArtworkModal.set(false)" class="px-4 py-2 rounded-lg text-stone-600 font-bold">إلغاء</button>
+          <button (click)="saveNewArtwork()" class="px-5 py-2 rounded-lg bg-amber-800 hover:bg-amber-900 text-white font-bold transition-colors shadow">
+            إضافة للمعرض
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- LIGHTBOX / VIEW ARTWORK MODAL -->
+  <div *ngIf="selectedArtwork()" 
+       class="fixed inset-0 z-50 bg-stone-950/70 backdrop-blur-sm flex items-center justify-center p-4"
+       role="dialog"
+       aria-modal="true"
+       (click)="selectedArtwork.set(null)">
+    <div class="bg-white text-stone-900 rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-stone-200" 
+         (click)="$event.stopPropagation()">
+      
+      <div class="flex items-center justify-between pb-3 border-b border-stone-200 mb-4">
+        <div>
+          <h2 class="font-bold text-lg text-stone-900 text-balance">{{ selectedArtwork()?.title }}</h2>
+          <p class="text-xs text-stone-500 tabular-nums">{{ formatDate(selectedArtwork()?.createdAt) }} • {{ selectedArtwork()?.source === 'lab' ? 'معمل التصميم الافتراضي' : 'تصميم خارجي' }}</p>
+        </div>
+        <button (click)="selectedArtwork.set(null)" class="text-stone-400 hover:text-stone-700 font-bold text-xl" aria-label="إغلاق المعاينة">✕</button>
+      </div>
+
+      <div class="aspect-[4/3] max-h-[55vh] bg-stone-100 rounded-xl overflow-hidden flex items-center justify-center p-2 mb-4 border border-stone-200">
+        <img [src]="selectedArtwork()?.imageUrl" [alt]="selectedArtwork()?.title" class="max-w-full max-h-full object-contain">
+      </div>
+
+      <p *ngIf="selectedArtwork()?.description" class="text-sm text-stone-700 bg-stone-50 p-3.5 rounded-lg mb-4 leading-relaxed text-pretty">
+        {{ selectedArtwork()?.description }}
+      </p>
+
+      <div class="flex items-center justify-between pt-2">
+        <button (click)="deleteArtwork(selectedArtwork()!.id)" class="text-xs text-rose-600 hover:text-rose-800 font-bold flex items-center gap-1" aria-label="حذف من المعرض">
+          <span class="material-icons text-sm">delete</span>
+          <span>حذف من ملف الإنجاز</span>
+        </button>
+        <button (click)="selectedArtwork.set(null)" class="px-5 py-2 rounded-lg bg-stone-900 hover:bg-stone-800 text-white font-bold text-xs shadow">
+          إغلاق المعاينة
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+</div>

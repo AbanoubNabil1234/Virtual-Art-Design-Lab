@@ -53,6 +53,10 @@ import { ModuleService } from '../../../core/services/module.service';
       </div>
 
       <!-- Tests & Utilities -->
+      <a routerLink="/portfolio" routerLinkActive="active" class="sidebar-btn font-bold text-amber-300 bg-amber-950/40 border border-amber-500/30 flex items-center justify-between">
+        <span>ملف الإنجاز الرقمي</span>
+        <span class="material-icons text-sm text-amber-400">workspace_premium</span>
+      </a>
       <a routerLink="/lab" routerLinkActive="active" class="sidebar-btn">المعمل الافتراضي</a>
       <a routerLink="/forum" routerLinkActive="active" class="sidebar-btn">المنتدى</a>
       <a routerLink="/notepad" routerLinkActive="active" class="sidebar-btn">الملاحظات</a>

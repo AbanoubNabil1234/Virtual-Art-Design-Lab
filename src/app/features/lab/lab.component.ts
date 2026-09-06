@@ -5,6 +5,7 @@ import { Router, RouterLink } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { PerformanceTestService } from '../../core/services/performance-test.service';
 import { ButtonSoundService } from '../../core/services/button-sound.service';
+import { PortfolioService } from '../../core/services/portfolio.service';
 
 type Tool = 'pen' | 'eraser' | 'fill' | 'text' | 'spray' | 'picker' | 'rect' | 'circle' | 'line' | 'triangle' | 'star' | 'arrow' | 'diamond' | 'hexagon';
 
@@ -411,10 +412,14 @@ interface ToolDoc {
                  (click)="clearCanvas()" title="Clear">
              <span class="material-icons">delete</span>
          </button>
-         <button class="tool-btn action" (mouseenter)="onToolHover($event, 'save', 'top')" (mouseleave)="onToolLeave()"
-                 (click)="saveCanvas()" title="Save">
-             <span class="material-icons">save_alt</span>
-         </button>
+          <button class="tool-btn action" (mouseenter)="onToolHover($event, 'save', 'top')" (mouseleave)="onToolLeave()"
+                  (click)="saveCanvas()" title="Save">
+              <span class="material-icons">save_alt</span>
+          </button>
+          <button class="tool-btn action text-amber-600 hover:text-amber-700" (mouseenter)="onToolHover($event, 'portfolio', 'top')" (mouseleave)="onToolLeave()"
+                  (click)="saveToPortfolio()" title="حفظ في ملف الإنجاز">
+              <span class="material-icons">collections_bookmark</span>
+          </button>
       </div>
 
       <input #textInput type="text" 
@@ -566,6 +571,7 @@ export class LabComponent implements AfterViewInit, OnInit, OnDestroy {
 
   readonly perfService = inject(PerformanceTestService);
   private readonly buttonSound = inject(ButtonSoundService);
+  private readonly portfolioService = inject(PortfolioService);
   private readonly router = inject(Router);
   private readonly sanitizer = inject(DomSanitizer);
 
@@ -612,6 +618,13 @@ export class LabComponent implements AfterViewInit, OnInit, OnDestroy {
       category: 'تحكم وتصدير',
       description: 'استعراض شرح جميع أدوات وتطبيقات المعمل الرقمي.',
       usageTip: 'انقر لفتح نافذة الشرح التفاعلية المفصلة.'
+    },
+    portfolio: {
+      name: 'حفظ في ملف الإنجاز',
+      icon: 'collections_bookmark',
+      category: 'تحكم وتصدير',
+      description: 'حفظ اللوحة والتصميم الحالي مباشرة داخل معرض ملف إنجازك الرقمي.',
+      usageTip: 'انقر لتسمية العمل وتوثيقه في ملف الإنجاز الأكاديمي.'
     },
     pen: {
       name: 'القلم (Pen)',
@@ -1425,5 +1438,25 @@ export class LabComponent implements AfterViewInit, OnInit, OnDestroy {
     link.download = `lab-artwork-${Date.now()}.png`;
     link.href = this.canvasRef.nativeElement.toDataURL();
     link.click();
+  }
+
+  async saveToPortfolio() {
+    const defaultTitle = `لوحة تشكيلية #${Date.now().toString().slice(-4)}`;
+    const title = prompt('أدخل عنواناً لهذا التصميم الفني لتوثيقه في ملف إنجازك الرقمي:', defaultTitle);
+    if (!title || !title.trim()) return;
+
+    const canvas = this.canvasRef.nativeElement;
+    const dataUrl = canvas.toDataURL('image/png');
+
+    await this.portfolioService.addArtwork({
+      title: title.trim(),
+      description: 'عمل فني تم إنتاجه في المعمل الافتراضي لتنمية مفاهيم ومهارات التصميم.',
+      imageUrl: dataUrl,
+      source: 'lab',
+      category: 'تصميم معمل رقمي'
+    });
+
+    this.buttonSound.playClick();
+    alert(`🎨 تم توثيق اللوحة "${title.trim()}" بنجاح داخل ملف الإنجاز الرقمي!`);
   }
 }

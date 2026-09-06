@@ -1,0 +1,119 @@
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap');
+
+/* Portfolio Component Styles */
+.portfolio-page {
+  direction: rtl;
+  font-family: 'Cairo', 'Noto Kufi Arabic', system-ui, -apple-system, sans-serif;
+  color: #1c1917;
+  line-height: 1.65;
+  font-size: 0.9375rem; /* 15px */
+}
+
+/* Ensure headings and inputs inherit Cairo */
+.portfolio-page h1,
+.portfolio-page h2,
+.portfolio-page h3,
+.portfolio-page h4,
+.portfolio-page button,
+.portfolio-page input,
+.portfolio-page textarea {
+  font-family: 'Cairo', 'Noto Kufi Arabic', system-ui, -apple-system, sans-serif;
+}
+
+/* Segmented Tabs (Clean, Academic, High Readability) */
+.tab-btn {
+  background-color: transparent;
+  color: #57534e;
+  border: 1px solid transparent;
+  font-family: inherit;
+}
+
+.tab-btn:hover {
+  color: #1c1917;
+  background-color: rgba(255, 255, 255, 0.7);
+}
+
+.tab-btn.tab-active {
+  background-color: #ffffff;
+  color: #1c1917;
+  border-color: rgba(214, 211, 209, 0.8);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.06);
+  font-weight: 700;
+}
+
+.tab-btn.tab-active .material-icons {
+  color: #78350f;
+}
+
+.line-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-4 {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Print Rules for High Quality Official PDF / Paper Export */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 12mm 10mm 15mm 10mm;
+  }
+
+  /* Hide normal screen elements */
+  :host,
+  .portfolio-page {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #fff !important;
+    color: #000 !important;
+    font-family: 'Cairo', Arial, sans-serif !important;
+  }
+
+  .no-print-wrapper {
+    display: none !important;
+  }
+
+  .official-print-report {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    font-size: 11pt !important;
+    background: #fff !important;
+    color: #000 !important;
+  }
+
+  .report-table th,
+  .report-table td {
+    border: 1px solid #333 !important;
+  }
+
+  .report-table th {
+    background-color: #f0f0f0 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .page-break-inside-avoid {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+}
