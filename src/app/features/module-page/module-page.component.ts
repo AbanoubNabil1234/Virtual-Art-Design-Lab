@@ -1,10 +1,13 @@
 import { AfterViewInit, Component, HostListener, computed, effect, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ModuleService } from '../../core/services/module.service';
 import { QuestionBankService, Question } from '../../core/services/question-bank.service';
 import { ButtonSoundService } from '../../core/services/button-sound.service';
+import { PerformanceTestService } from '../../core/services/performance-test.service';
+import { LessonPracticalService, LessonPracticalTask } from '../../core/services/lesson-practical.service';
 import type { ModuleSlideDeck } from '../../core/models/module.model';
 
 type LessonWindow = 'slides' | 'video';
@@ -210,6 +213,96 @@ type LessonWindow = 'slides' | 'video';
                 <span class="material-icons text-base">quiz</span>
                 <span>{{ moduleProgress()?.completed ? 'عرض نتيجة وإجابات الاختبار 📝' : 'دخول اختبار وتقويم الدرس 📝' }}</span>
               </button>
+            </section>
+          }
+
+          <!-- LESSON PRACTICAL LAB TASK CARD -->
+          @if (currentPracticalTask(); as practicalTask) {
+            <section class="border-2 rounded-3xl p-5 md:p-7 bg-gradient-to-br from-amber-50/90 via-orange-50/50 to-amber-100/40 border-amber-900/20 shadow-lg my-8 text-right relative overflow-hidden animate-fade-in">
+              
+              <!-- Top decorative badge -->
+              <div class="flex flex-wrap items-center justify-between gap-3 mb-4 border-b border-amber-900/10 pb-3">
+                <div class="inline-flex items-center gap-2 px-3.5 py-1.5 bg-amber-900 text-amber-50 font-black text-xs md:text-sm rounded-full shadow-sm">
+                  <span class="material-icons text-base">palette</span>
+                  <span>النشاط والتطبيق العملي في المعمل الافتراضي</span>
+                </div>
+
+                <div class="flex items-center gap-2">
+                  @if (practicalTask.completed) {
+                    <span class="px-3 py-1 bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold text-xs rounded-full flex items-center gap-1">
+                      <span class="material-icons text-sm">check_circle</span>
+                      تم إنجاز النشاط بالمعمل ✓
+                    </span>
+                  } @else {
+                    <span class="px-3 py-1 bg-amber-100 text-amber-800 border border-amber-300 font-bold text-xs rounded-full flex items-center gap-1">
+                      <span class="material-icons text-sm">schedule</span>
+                      المهمة العملية (10 دقائق)
+                    </span>
+                  }
+                </div>
+              </div>
+
+              <!-- Question Box -->
+              <div class="mb-5">
+                <h3 class="text-base md:text-lg font-black text-gray-900 mb-2 flex items-center gap-2">
+                  <span class="text-amber-800">📌</span>
+                  <span>السؤال الأدائي للمعمل:</span>
+                </h3>
+                <p class="text-base md:text-lg font-bold text-amber-950 bg-white/90 p-4 rounded-2xl border border-amber-200 shadow-sm leading-relaxed m-0">
+                  {{ practicalTask.question }}
+                </p>
+              </div>
+
+              <!-- Details Grid (SVG + Skills + Tools) -->
+              <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 items-center mb-6">
+                
+                <!-- Visual preview SVG box -->
+                <div class="bg-white rounded-2xl border border-amber-200/80 p-2 shadow-inner h-36 flex items-center justify-center overflow-hidden">
+                  <div class="w-full h-full flex items-center justify-center" [innerHTML]="getSafeSvg(practicalTask.exampleSvg)"></div>
+                </div>
+
+                <!-- Skills & Tools -->
+                <div class="lg:col-span-2 space-y-2.5 text-right">
+                  <div>
+                    <h4 class="text-xs font-bold text-gray-700 mb-1 flex items-center gap-1">
+                      <span class="material-icons text-sm text-amber-700">stars</span>
+                      المهارات المستهدفة من النشاط:
+                    </h4>
+                    <ul class="list-disc list-inside space-y-0.5 text-xs md:text-sm text-gray-700 pr-1">
+                      @for (s of practicalTask.skills; track s) {
+                        <li>{{ s }}</li>
+                      }
+                    </ul>
+                  </div>
+
+                  <div class="flex items-center gap-2 flex-wrap pt-2 border-t border-amber-200/60">
+                    <span class="text-xs font-bold text-gray-600">الأدوات المناسبة في المعمل:</span>
+                    @for (tool of practicalTask.recommendedTools; track tool) {
+                      <span class="px-2.5 py-0.5 bg-amber-200/70 text-amber-900 text-xs font-bold rounded-lg border border-amber-300">
+                        {{ tool }}
+                      </span>
+                    }
+                  </div>
+                </div>
+
+              </div>
+
+              <!-- Action Button -->
+              <div class="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-amber-900/10">
+                <p class="text-xs text-gray-600 m-0 leading-relaxed">
+                  انقر على الزر للذهاب إلى مساحة المعمل الافتراضي مع تحميل نموذج النشاط التوضيحي والمؤقت تلقائياً.
+                </p>
+
+                <button
+                  type="button"
+                  class="btn-primary bg-amber-900 hover:bg-amber-950 text-white px-7 py-3 text-sm md:text-base font-black shadow-lg hover:shadow-xl transition-all flex items-center gap-2 rounded-2xl"
+                  data-sound="start"
+                  (click)="openPracticalTaskInLab(practicalTask)">
+                  <span>{{ practicalTask.completed ? 'إعادة فتح النشاط في المعمل 🎨' : 'بدء تنفيذ النشاط في المعمل 🎨' }}</span>
+                  <span class="material-icons text-lg">rocket_launch</span>
+                </button>
+              </div>
+
             </section>
           }
 
@@ -657,6 +750,9 @@ export class ModulePageComponent implements AfterViewInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   readonly moduleService = inject(ModuleService);
+  readonly lessonPracticalService = inject(LessonPracticalService);
+  private readonly perfService = inject(PerformanceTestService);
+  private sanitizer = inject(DomSanitizer);
   private questionBankService = inject(QuestionBankService);
   private buttonSound = inject(ButtonSoundService);
 
@@ -680,6 +776,23 @@ export class ModulePageComponent implements AfterViewInit {
     const id = params?.get('id') || 'blueprint-to-canvas';
     return this.moduleService.getModuleById(id);
   });
+
+  currentPracticalTask = computed(() => {
+    const mod = this.module();
+    if (!mod) return null;
+    return this.lessonPracticalService.getTaskByLessonId(mod.id) ?? null;
+  });
+
+  getSafeSvg(svg: string): SafeHtml {
+    return this.sanitizer.bypassSecurityTrustHtml(svg);
+  }
+
+  openPracticalTaskInLab(task: LessonPracticalTask): void {
+    this.perfService.setActiveTask(null);
+    this.lessonPracticalService.setActiveTask(task.id);
+    this.buttonSound.play('start');
+    this.router.navigate(['/lab']);
+  }
 
   isUnlocked = computed(() => {
     const mod = this.module();

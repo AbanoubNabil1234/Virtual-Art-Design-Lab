@@ -1,13 +1,14 @@
-import { Component, ElementRef, ViewChild, AfterViewInit, OnInit, OnDestroy, signal, HostListener, inject } from '@angular/core';
+import { Component, ElementRef, ViewChild, AfterViewInit, OnInit, OnDestroy, signal, HostListener, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { PerformanceTestService } from '../../core/services/performance-test.service';
+import { LessonPracticalService, LessonPracticalTask } from '../../core/services/lesson-practical.service';
 import { ButtonSoundService } from '../../core/services/button-sound.service';
 import { PortfolioService } from '../../core/services/portfolio.service';
 
-type Tool = 'pen' | 'eraser' | 'fill' | 'text' | 'spray' | 'picker' | 'rect' | 'circle' | 'line' | 'triangle' | 'star' | 'arrow' | 'diamond' | 'hexagon';
+type Tool = 'pen' | 'eraser' | 'fill' | 'text' | 'spray' | 'dots' | 'picker' | 'rect' | 'circle' | 'line' | 'triangle' | 'star' | 'arrow' | 'diamond' | 'hexagon';
 
 interface ToolDoc {
   name: string;
@@ -35,6 +36,22 @@ interface ToolDoc {
       <!-- Grid Overlay -->
       <div class="grid-overlay" *ngIf="showGrid" [style.pointer-events]="'none'"></div>
 
+      <!-- Align Guides Overlay -->
+      <div class="align-overlay" *ngIf="showAlignGuides()" [style.pointer-events]="'none'">
+        <div class="align-line" style="top: 22%;">
+          <span class="align-label">خط المحاذاة الأفقي 1</span>
+        </div>
+        <div class="align-line" style="top: 42%;">
+          <span class="align-label">خط المحاذاة الأفقي 2</span>
+        </div>
+        <div class="align-line" style="top: 62%;">
+          <span class="align-label">خط المحاذاة الأفقي 3</span>
+        </div>
+        <div class="align-line" style="top: 82%;">
+          <span class="align-label">خط المحاذاة الأفقي 4</span>
+        </div>
+      </div>
+
       <!-- LIVE FLOATING TOOLTIP ON EVERY SINGLE TOOL BUTTON -->
       <div *ngIf="hoveredToolDoc()"
            class="fixed z-[200] bg-gray-900/95 text-white p-3.5 rounded-2xl shadow-2xl border border-amber-500/40 backdrop-blur-md max-w-xs pointer-events-none text-right animate-fade-in"
@@ -54,15 +71,15 @@ interface ToolDoc {
         </p>
       </div>
 
-      <!-- ACTIVE PERFORMANCE TASK OVERLAY / DRAWER -->
-      <div *ngIf="perfService.activeTask()" class="lab-task-overlay animate-fade-in">
+      <!-- ACTIVE TASK OVERLAY / DRAWER (LESSON PRACTICAL TASK OR GENERAL PERF TASK) -->
+      <div *ngIf="currentLabTask() as activeTask" class="lab-task-overlay animate-fade-in">
         
         <!-- COLLAPSED COMPACT BAR -->
         <div *ngIf="isTaskCollapsed()" class="flex items-center gap-3 bg-amber-900 text-white px-4 py-2 rounded-2xl shadow-xl border border-amber-500/30 backdrop-blur">
           <span class="material-icons text-amber-400 text-base">palette</span>
-          <span class="font-bold text-xs">المهمة {{ perfService.activeTask()?.id }}: {{ perfService.activeTask()?.text?.substring(0, 35) }}...</span>
+          <span class="font-bold text-xs">{{ activeTask.title }}: {{ activeTask.question.substring(0, 32) }}...</span>
           <span class="px-2 py-0.5 bg-amber-950 text-amber-300 font-mono text-xs rounded-lg border border-amber-700 font-black">
-            {{ perfService.formatTime(perfService.activeTask()?.remainingSeconds || 600) }}
+            {{ formatTime(activeTask.remainingSeconds) }}
           </span>
           <button (click)="isTaskCollapsed.set(false)" class="text-xs bg-amber-800 hover:bg-amber-700 text-white px-2.5 py-1 rounded-lg border border-amber-600 font-bold">
             التفاصيل والمثال 🖼️
@@ -74,22 +91,22 @@ interface ToolDoc {
           
           <div class="flex items-center justify-between gap-2 border-b border-gray-200 pb-2.5 mb-3">
             <div class="flex items-center gap-2">
-              <span class="w-7 h-7 rounded-lg bg-amber-900 text-white font-black text-xs flex items-center justify-center">
-                {{ perfService.activeTask()?.id }}
+              <span class="px-2.5 py-1 rounded-lg bg-amber-900 text-white font-black text-xs flex items-center justify-center">
+                {{ activeTask.badge }}
               </span>
-              <h4 class="font-black text-gray-900 text-sm m-0">المهمة الأدائية {{ perfService.activeTask()?.id }}</h4>
+              <h4 class="font-black text-gray-900 text-sm m-0">{{ activeTask.title }}</h4>
             </div>
 
             <!-- Timer -->
             <div class="flex items-center gap-1.5 px-3 py-1 bg-amber-50 text-amber-900 border border-amber-300 rounded-lg font-mono text-xs font-black">
               <span class="material-icons text-sm text-amber-700">timer</span>
-              <span>{{ perfService.formatTime(perfService.activeTask()?.remainingSeconds || 600) }}</span>
+              <span>{{ formatTime(activeTask.remainingSeconds) }}</span>
             </div>
           </div>
 
           <!-- Task Text -->
           <p class="text-xs md:text-sm font-bold text-gray-900 leading-relaxed mb-3">
-            {{ perfService.activeTask()?.text }}
+            {{ activeTask.question }}
           </p>
 
           <!-- VISUAL EXAMPLE BOX (SVG + Description) -->
@@ -97,25 +114,25 @@ interface ToolDoc {
             <div class="flex items-center justify-between gap-2 mb-2">
               <span class="text-xs font-black text-amber-900 flex items-center gap-1">
                 <span class="material-icons text-sm">image</span>
-                {{ perfService.activeTask()?.exampleTitle }}
+                {{ activeTask.exampleTitle }}
               </span>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 items-center mb-2">
               <!-- SVG Preview Box -->
               <div class="w-full h-28 bg-white rounded-lg border border-amber-200 p-1 flex items-center justify-center shadow-inner"
-                   [innerHTML]="getSafeSvg(perfService.activeTask()?.exampleSvg || '')">
+                   [innerHTML]="getSafeSvg(activeTask.exampleSvg)">
               </div>
 
               <!-- Description & Guide -->
               <div class="sm:col-span-2 text-right">
                 <p class="text-[11px] text-gray-700 leading-relaxed m-0 mb-2">
-                  {{ perfService.activeTask()?.exampleDescription }}
+                  {{ activeTask.exampleDescription }}
                 </p>
                 <!-- Recommended Tools badges -->
                 <div class="flex items-center gap-1 flex-wrap">
                   <span class="text-[10px] text-gray-500 font-bold">الأدوات:</span>
-                  <span *ngFor="let t of perfService.activeTask()?.recommendedTools"
+                  <span *ngFor="let t of activeTask.recommendedTools"
                         class="px-1.5 py-0.5 bg-amber-100 text-amber-900 text-[10px] font-bold rounded border border-amber-200">
                     {{ t }}
                   </span>
@@ -125,17 +142,17 @@ interface ToolDoc {
 
             <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-2 mb-2 text-[11px] text-emerald-900 font-bold flex items-center gap-1.5">
               <span class="material-icons text-sm text-emerald-700">auto_fix_high</span>
-              <span>تم رسم النموذج التوضيحي على اللوحة تلقائياً — يمكنك الآن التعديل والتلوين فوقه!</span>
+              <span>{{ activeTask.type === 'lesson' && activeTask.id === 5 ? 'تم إدراج ملصق القارب المائي على مساحة اللوحة لتعديل خلفيته فوراً!' : 'تم رسم النموذج التوضيحي على اللوحة — يمكنك البدء بالتطبيق فوقه!' }}</span>
             </div>
 
             <button (click)="drawGuideOnCanvas(true)" class="w-full py-1.5 px-3 bg-amber-800 hover:bg-amber-900 text-white rounded-lg text-xs font-bold transition-colors flex items-center justify-center gap-1 shadow-sm">
               <span class="material-icons text-sm">refresh</span>
-              <span>إعادة رسم وتجهيز الشكل التوضيحي للبدء بالتعديل 🔄</span>
+              <span>{{ activeTask.type === 'lesson' && activeTask.id === 5 ? 'إعادة إدراج ملصق القارب المائي على اللوحة 🖼️' : 'إعادة رسم وتجهيز الشكل التوضيحي للبدء بالتعديل 🔄' }}</span>
             </button>
           </div>
 
-          <!-- UNLOCKED NEXT TASK CELEBRATION BANNER -->
-          <div *ngIf="nextUnlockedTaskId()"
+          <!-- UNLOCKED NEXT TASK BANNER -->
+          <div *ngIf="nextUnlockedTaskId() && activeTask.type === 'perf'"
                class="bg-emerald-600 text-white rounded-xl p-3 mb-3 text-xs font-bold shadow-lg animate-bounce flex flex-col gap-2 text-right">
             <div class="flex items-center gap-1.5">
               <span class="material-icons text-base">lock_open</span>
@@ -151,7 +168,7 @@ interface ToolDoc {
           <div class="bg-gray-50 border border-gray-100 rounded-xl p-2.5 mb-3 text-[11px]">
             <span class="font-bold text-gray-700 block mb-1">المهارات المطلوبة:</span>
             <ul class="list-disc list-inside space-y-0.5 text-gray-600 pr-1">
-              <li *ngFor="let s of perfService.activeTask()?.skills">{{ s }}</li>
+              <li *ngFor="let s of activeTask.skills">{{ s }}</li>
             </ul>
           </div>
 
@@ -159,15 +176,15 @@ interface ToolDoc {
           <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-gray-100">
             <button (click)="markTaskCompleted()" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold flex items-center gap-1 shadow-sm">
               <span class="material-icons text-sm">check_circle</span>
-              <span>{{ perfService.activeTask()?.completed ? 'تم الإنجاز ✓' : 'تحديد كـ مكتملة ✓' }}</span>
+              <span>{{ activeTask.completed ? 'تم الإنجاز ✓' : 'تحديد كـ مكتملة ✓' }}</span>
             </button>
 
             <button (click)="isTaskCollapsed.set(true)" class="text-xs text-gray-600 hover:text-gray-900 font-bold">
               طي 🔼
             </button>
 
-            <button (click)="returnToPerfTest()" class="text-xs text-amber-900 font-bold hover:underline flex items-center gap-0.5">
-              <span>العودة للمهام 🔙</span>
+            <button (click)="returnToSource(activeTask)" class="text-xs text-amber-900 font-bold hover:underline flex items-center gap-0.5">
+              <span>{{ activeTask.type === 'lesson' ? 'العودة لصفحة الدرس 🔙' : 'العودة لقائمة المهام 🔙' }}</span>
             </button>
           </div>
         </div>
@@ -298,6 +315,11 @@ interface ToolDoc {
                 (click)="setTool('spray')" title="بخاخ (S)">
             <span class="material-icons">grain</span>
         </button>
+        <button class="tool-btn" [class.active]="activeTool() === 'dots'"
+                (mouseenter)="onToolHover($event, 'dots')" (mouseleave)="onToolLeave()"
+                (click)="setTool('dots')" title="أداة النقاط الرقمية (D)">
+            <span class="material-icons">more_horiz</span>
+        </button>
         <button class="tool-btn" [class.active]="activeTool() === 'eraser'"
                 (mouseenter)="onToolHover($event, 'eraser')" (mouseleave)="onToolLeave()"
                 (click)="setTool('eraser')" title="ممحاة (E)">
@@ -397,10 +419,14 @@ interface ToolDoc {
              <span class="material-icons">help_outline</span>
          </button>
 
-         <button class="tool-btn" (mouseenter)="onToolHover($event, 'grid', 'top')" (mouseleave)="onToolLeave()"
-                 (click)="toggleGrid()" [class.active]="showGrid" title="Grid">
-             <span class="material-icons">grid_on</span>
-         </button>
+          <button class="tool-btn" (mouseenter)="onToolHover($event, 'grid', 'top')" (mouseleave)="onToolLeave()"
+                  (click)="toggleGrid()" [class.active]="showGrid" title="Grid">
+              <span class="material-icons">grid_on</span>
+          </button>
+          <button class="tool-btn" (mouseenter)="onToolHover($event, 'align', 'top')" (mouseleave)="onToolLeave()"
+                  (click)="toggleAlignGuides()" [class.active]="showAlignGuides()" title="أداة المحاذاة (Align)">
+              <span class="material-icons">format_align_justify</span>
+          </button>
          
          <div class="divider-vertical"></div>
 
@@ -473,6 +499,35 @@ interface ToolDoc {
         background-image:
             linear-gradient(to right, #e0e0e0 1px, transparent 1px),
             linear-gradient(to bottom, #e0e0e0 1px, transparent 1px);
+    }
+
+    .align-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 10;
+    }
+    .align-line {
+      position: absolute;
+      left: 0;
+      right: 0;
+      border-top: 2px dashed rgba(37, 99, 235, 0.7);
+      display: flex;
+      justify-content: flex-end;
+      padding: 2px 30px;
+    }
+    .align-label {
+      background: rgba(30, 64, 175, 0.95);
+      color: white;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 2px 8px;
+      border-radius: 6px;
+      margin-top: -12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
     }
 
     .floating-toolbar {
@@ -570,6 +625,7 @@ export class LabComponent implements AfterViewInit, OnInit, OnDestroy {
   @ViewChild('textInput') textInputRef!: ElementRef<HTMLInputElement>;
 
   readonly perfService = inject(PerformanceTestService);
+  readonly lessonPracticalService = inject(LessonPracticalService);
   private readonly buttonSound = inject(ButtonSoundService);
   private readonly portfolioService = inject(PortfolioService);
   private readonly router = inject(Router);
@@ -577,6 +633,7 @@ export class LabComponent implements AfterViewInit, OnInit, OnDestroy {
 
   isTaskCollapsed = signal(false);
   showToolsGuideModal = signal(false);
+  showAlignGuides = signal(false);
   
   // Hover Tooltip signals & positions
   hoveredToolDoc = signal<ToolDoc | null>(null);
@@ -591,6 +648,66 @@ export class LabComponent implements AfterViewInit, OnInit, OnDestroy {
   strokeSize = 5;
   isDrawing = false;
   showGrid = false;
+  lastDotX = 0;
+  lastDotY = 0;
+
+  readonly currentLabTask = computed(() => {
+    const lessonTask = this.lessonPracticalService.activeTask();
+    if (lessonTask) {
+      return {
+        type: 'lesson' as const,
+        id: lessonTask.id,
+        lessonId: lessonTask.lessonId,
+        title: `النشاط العملي: ${lessonTask.lessonTitle}`,
+        badge: `الدرس ${lessonTask.lessonNumber}`,
+        question: lessonTask.question,
+        skills: lessonTask.skills,
+        exampleTitle: lessonTask.exampleTitle,
+        exampleDescription: lessonTask.exampleDescription,
+        recommendedTools: lessonTask.recommendedTools,
+        exampleSvg: lessonTask.exampleSvg,
+        posterImage: lessonTask.posterImage,
+        completed: lessonTask.completed,
+        remainingSeconds: lessonTask.remainingSeconds,
+        timeSpentSeconds: lessonTask.timeSpentSeconds
+      };
+    }
+
+    const perfTask = this.perfService.activeTask();
+    if (perfTask) {
+      return {
+        type: 'perf' as const,
+        id: perfTask.id,
+        lessonId: undefined,
+        title: `المهمة الأدائية ${perfTask.id}`,
+        badge: `المهمة ${perfTask.id}`,
+        question: perfTask.text,
+        skills: perfTask.skills,
+        exampleTitle: perfTask.exampleTitle,
+        exampleDescription: perfTask.exampleDescription,
+        recommendedTools: perfTask.recommendedTools,
+        exampleSvg: perfTask.exampleSvg,
+        posterImage: undefined,
+        completed: perfTask.completed,
+        remainingSeconds: perfTask.remainingSeconds,
+        timeSpentSeconds: perfTask.timeSpentSeconds
+      };
+    }
+
+    return null;
+  });
+
+  toggleAlignGuides(): void {
+    this.showAlignGuides.set(!this.showAlignGuides());
+  }
+
+  formatTime(seconds: number): string {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    const mStr = m < 10 ? `0${m}` : `${m}`;
+    const sStr = s < 10 ? `0${s}` : `${s}`;
+    return `${mStr}:${sStr}`;
+  }
 
   isTyping = false;
   textX = 0;
@@ -641,6 +758,14 @@ export class LabComponent implements AfterViewInit, OnInit, OnDestroy {
       category: 'رسم وتلوين',
       description: 'أداة رش اللون بأسلوب التظليل النقطي ورذاذ الألوان لمنح إحساس بالملمس الرقمي.',
       usageTip: 'اضغط مع السحب لتشكيل تجمعات نقطية متدرجة الكثافة.'
+    },
+    dots: {
+      name: 'أداة الرسم بالنقاط الرقمية (Dots)',
+      shortcut: 'D',
+      icon: 'more_horiz',
+      category: 'رسم وتلوين',
+      description: 'أداة وضع نقاط رقمية متناسقة لبناء الحدود والأشكال الزخرفية والتظليل النقطي (Stippling).',
+      usageTip: 'انقر نقرات متتابعة أو اسحب ببطء لرسم حدود الأشكال بالنقاط المنتظمة.'
     },
     eraser: {
       name: 'الممحاة (Eraser)',
@@ -758,6 +883,13 @@ export class LabComponent implements AfterViewInit, OnInit, OnDestroy {
       description: 'إظهار شبكة مربعات شفافة مساعدة لضبط القياسات والتوازيات.',
       usageTip: 'اضغط للتبديل بين إظهار وإخفاء الشبكة.'
     },
+    align: {
+      name: 'أداة المحاذاة (Align)',
+      icon: 'format_align_justify',
+      category: 'تحكم وتصدير',
+      description: 'إظهار خطوط وشبكة محاذاة أفقية متوازية لترتيب النصوص والعناصر بدقة دون تداخل.',
+      usageTip: 'انقر لتفعيل خطوط المحاذاة الأفقية وضبط العناصر والنصوص على استقامة واحدة.'
+    },
     undo: {
       name: 'التراجع (Undo)',
       shortcut: 'Ctrl+Z',
@@ -847,9 +979,11 @@ export class LabComponent implements AfterViewInit, OnInit, OnDestroy {
   private startTaskTimer(): void {
     this.stopTaskTimer();
     this.taskTimerInterval = setInterval(() => {
-      const active = this.perfService.activeTask();
-      if (active && !active.completed) {
-        if (active.remainingSeconds > 0) {
+      const active = this.currentLabTask();
+      if (active && !active.completed && active.remainingSeconds > 0) {
+        if (active.type === 'lesson') {
+          this.lessonPracticalService.updateTaskTime(active.id, active.remainingSeconds - 1);
+        } else {
           this.perfService.updateTaskTime(active.id, active.remainingSeconds - 1);
         }
       }
@@ -866,8 +1000,13 @@ export class LabComponent implements AfterViewInit, OnInit, OnDestroy {
   nextUnlockedTaskId = signal<number | null>(null);
 
   markTaskCompleted(): void {
-    const active = this.perfService.activeTask();
-    if (active) {
+    const active = this.currentLabTask();
+    if (!active) return;
+
+    if (active.type === 'lesson') {
+      this.lessonPracticalService.setTaskCompleted(active.id, true);
+      this.buttonSound.play('success');
+    } else {
       const res = this.perfService.setTaskCompleted(active.id, true);
       this.buttonSound.play('success');
       if (res.unlockedNext && res.nextTaskId) {
@@ -888,12 +1027,46 @@ export class LabComponent implements AfterViewInit, OnInit, OnDestroy {
     }
   }
 
+  returnToSource(task?: any): void {
+    const active = task || this.currentLabTask();
+    if (active && active.type === 'lesson' && active.lessonId) {
+      this.router.navigate([`/module/${active.lessonId}`]);
+    } else {
+      this.router.navigate(['/performance-test']);
+    }
+  }
+
   returnToPerfTest(): void {
-    this.router.navigate(['/performance-test']);
+    this.returnToSource();
+  }
+
+  loadPosterImage(url: string): void {
+    const canvas = this.canvasRef.nativeElement;
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      this.ctx.fillStyle = '#ffffff';
+      this.ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const maxW = Math.min(canvas.width * 0.75, 750);
+      const maxH = Math.min(canvas.height * 0.75, 600);
+      let drawW = img.width;
+      let drawH = img.height;
+      const ratio = Math.min(maxW / drawW, maxH / drawH);
+      drawW = drawW * ratio;
+      drawH = drawH * ratio;
+
+      const posX = (canvas.width - drawW) / 2;
+      const posY = (canvas.height - drawH) / 2;
+
+      this.ctx.drawImage(img, posX, posY, drawW, drawH);
+      this.saveState();
+    };
+    img.src = url;
   }
 
   drawGuideOnCanvas(playSound: boolean = false): void {
-    const active = this.perfService.activeTask();
+    const active = this.currentLabTask();
     if (!active || !this.ctx) return;
 
     const canvas = this.canvasRef.nativeElement;
@@ -903,159 +1076,365 @@ export class LabComponent implements AfterViewInit, OnInit, OnDestroy {
     this.ctx.save();
     this.ctx.lineWidth = 2.5;
 
-    switch (active.id) {
-      case 1: // Stippling dots sample
-        this.ctx.strokeStyle = '#6b4226';
-        this.ctx.fillStyle = '#d97706';
-        // Outer balance ring
-        this.ctx.beginPath();
-        this.ctx.arc(cx, cy, 90, 0, Math.PI * 2);
-        this.ctx.setLineDash([4, 6]);
-        this.ctx.stroke();
-        this.ctx.setLineDash([]);
-        // Center dots
-        for (let i = 0; i < 40; i++) {
-          const angle = Math.random() * Math.PI * 2;
-          const rad = Math.random() * 85;
-          const r = Math.random() * 6 + 2;
-          this.ctx.fillStyle = i % 3 === 0 ? '#d97706' : (i % 3 === 1 ? '#059669' : '#6b4226');
+    if (active.type === 'lesson') {
+      switch (active.id) {
+        case 1: { // Lesson 1: Book cover design layout
+          const coverW = 340;
+          const coverH = 460;
+          const leftX = cx - coverW / 2;
+          const topY = cy - coverH / 2;
+
+          // Book outer border & spine
+          this.ctx.strokeStyle = '#6b4226';
+          this.ctx.strokeRect(leftX, topY, coverW, coverH);
+          this.ctx.fillStyle = 'rgba(251, 191, 36, 0.08)';
+          this.ctx.fillRect(leftX, topY, coverW, coverH);
+
+          // Spine guide
+          this.ctx.fillStyle = 'rgba(107, 66, 38, 0.2)';
+          this.ctx.fillRect(leftX, topY, 24, coverH);
+          this.ctx.strokeRect(leftX, topY, 24, coverH);
+
+          // Title Header guide (Functional)
+          this.ctx.setLineDash([6, 6]);
+          this.ctx.strokeStyle = '#b45309';
+          this.ctx.strokeRect(leftX + 44, topY + 28, coverW - 68, 55);
+          this.ctx.fillStyle = '#92400e';
+          this.ctx.font = 'bold 15px sans-serif';
+          this.ctx.textAlign = 'center';
+          this.ctx.fillText('عنوان الكتاب الرئيسي (الوظيفة العملية)', cx + 12, topY + 62);
+
+          // Central Aesthetic Illustration Area (Aesthetic)
+          this.ctx.strokeStyle = '#059669';
+          this.ctx.strokeRect(leftX + 44, topY + 105, coverW - 68, 240);
+          this.ctx.fillStyle = 'rgba(16, 185, 129, 0.08)';
+          this.ctx.fillRect(leftX + 44, topY + 105, coverW - 68, 240);
+          this.ctx.fillStyle = '#065f46';
+          this.ctx.font = 'bold 14px sans-serif';
+          this.ctx.fillText('مساحة الرسم واللوحة التشكيلية (القيمة الجمالية الفنية)', cx + 12, topY + 230);
+
+          // Author / Subtitle Footer guide
+          this.ctx.strokeStyle = '#4b5563';
+          this.ctx.strokeRect(leftX + 44, topY + 365, coverW - 68, 45);
+          this.ctx.fillStyle = '#374151';
+          this.ctx.font = 'bold 13px sans-serif';
+          this.ctx.fillText('اسم المؤلف وبيانات الإصدار', cx + 12, topY + 393);
+          this.ctx.setLineDash([]);
+          break;
+        }
+
+        case 2: { // Lesson 2: 3 shapes without overlap (triangle, square, circle)
+          // Square
+          this.ctx.strokeStyle = '#2563eb';
+          this.ctx.fillStyle = 'rgba(37, 99, 235, 0.15)';
+          this.ctx.strokeRect(cx - 190, cy - 80, 110, 110);
+          this.ctx.fillRect(cx - 190, cy - 80, 110, 110);
+
+          // Triangle
+          this.ctx.strokeStyle = '#d97706';
+          this.ctx.fillStyle = 'rgba(217, 119, 6, 0.15)';
           this.ctx.beginPath();
-          this.ctx.arc(cx + Math.cos(angle) * rad, cy + Math.sin(angle) * rad, r, 0, Math.PI * 2);
+          this.ctx.moveTo(cx, cy - 100);
+          this.ctx.lineTo(cx - 65, cy + 30);
+          this.ctx.lineTo(cx + 65, cy + 30);
+          this.ctx.closePath();
           this.ctx.fill();
-        }
-        break;
-
-      case 2: // Triangle, square, circle
-        // Square
-        this.ctx.strokeStyle = '#1d4ed8';
-        this.ctx.fillStyle = 'rgba(59, 130, 246, 0.15)';
-        this.ctx.fillRect(cx - 100, cy - 70, 90, 90);
-        this.ctx.strokeRect(cx - 100, cy - 70, 90, 90);
-        // Circle
-        this.ctx.strokeStyle = '#b91c1c';
-        this.ctx.fillStyle = 'rgba(239, 68, 68, 0.15)';
-        this.ctx.beginPath();
-        this.ctx.arc(cx + 45, cy, 50, 0, Math.PI * 2);
-        this.ctx.fill();
-        this.ctx.stroke();
-        // Triangle
-        this.ctx.strokeStyle = '#d97706';
-        this.ctx.fillStyle = 'rgba(245, 158, 11, 0.15)';
-        this.ctx.beginPath();
-        this.ctx.moveTo(cx, cy - 80);
-        this.ctx.lineTo(cx - 60, cy + 50);
-        this.ctx.lineTo(cx + 60, cy + 50);
-        this.ctx.closePath();
-        this.ctx.fill();
-        this.ctx.stroke();
-        break;
-
-      case 3: // Organic blobs
-        this.ctx.strokeStyle = '#047857';
-        this.ctx.fillStyle = 'rgba(16, 185, 129, 0.15)';
-        this.ctx.beginPath();
-        this.ctx.moveTo(cx - 90, cy - 50);
-        this.ctx.bezierCurveTo(cx - 30, cy - 110, cx + 90, cy - 70, cx + 70, cy + 30);
-        this.ctx.bezierCurveTo(cx + 50, cy + 100, cx - 70, cy + 110, cx - 90, cy - 50);
-        this.ctx.fill();
-        this.ctx.stroke();
-        break;
-
-      case 4: // Islamic 8-star motif
-        this.ctx.strokeStyle = '#b45309';
-        this.ctx.fillStyle = 'rgba(245, 158, 11, 0.15)';
-        this.ctx.beginPath();
-        for (let i = 0; i < 8; i++) {
-          const a = (i * Math.PI) / 4;
-          const r = i % 2 === 0 ? 80 : 40;
-          const x = cx + r * Math.cos(a);
-          const y = cy + r * Math.sin(a);
-          if (i === 0) this.ctx.moveTo(x, y);
-          else this.ctx.lineTo(x, y);
-        }
-        this.ctx.closePath();
-        this.ctx.fill();
-        this.ctx.stroke();
-        break;
-
-      case 5: // Hatching texture lines
-        this.ctx.strokeStyle = '#44403c';
-        for (let i = -70; i <= 70; i += 14) {
-          this.ctx.beginPath();
-          this.ctx.moveTo(cx + i, cy - 70);
-          this.ctx.lineTo(cx + i + 45, cy + 70);
           this.ctx.stroke();
+
+          // Circle
+          this.ctx.strokeStyle = '#059669';
+          this.ctx.fillStyle = 'rgba(5, 150, 105, 0.15)';
+          this.ctx.beginPath();
+          this.ctx.arc(cx + 150, cy - 25, 55, 0, Math.PI * 2);
+          this.ctx.fill();
+          this.ctx.stroke();
+
+          // Labels
+          this.ctx.fillStyle = '#1e293b';
+          this.ctx.font = 'bold 13px sans-serif';
+          this.ctx.textAlign = 'center';
+          this.ctx.fillText('مربع', cx - 135, cy + 55);
+          this.ctx.fillText('مثلث', cx, cy + 55);
+          this.ctx.fillText('دائرة', cx + 150, cy + 55);
+          break;
         }
-        break;
 
-      case 6: // Warm-cool gradient blocks
-        this.ctx.fillStyle = 'rgba(239, 68, 68, 0.2)';
-        this.ctx.fillRect(cx - 120, cy - 60, 60, 120);
-        this.ctx.fillStyle = 'rgba(245, 158, 11, 0.2)';
-        this.ctx.fillRect(cx - 60, cy - 60, 60, 120);
-        this.ctx.fillStyle = 'rgba(16, 185, 129, 0.2)';
-        this.ctx.fillRect(cx, cy - 60, 60, 120);
-        this.ctx.fillStyle = 'rgba(59, 130, 246, 0.2)';
-        this.ctx.fillRect(cx + 60, cy - 60, 60, 120);
-        this.ctx.strokeStyle = '#ffffff';
-        this.ctx.strokeRect(cx - 120, cy - 60, 240, 120);
-        break;
+        case 3: { // Lesson 3: Alternating repetition (square then circle)
+          const startX = cx - 275;
+          const y1 = cy - 65;
+          const y2 = cy + 45;
+          this.ctx.lineWidth = 2;
 
-      case 7: // Sine wave & parallel lines
-        this.ctx.strokeStyle = '#0284c7';
-        this.ctx.beginPath();
-        for (let x = -140; x <= 140; x += 5) {
-          const y = Math.sin(x / 20) * 35;
-          if (x === -140) this.ctx.moveTo(cx + x, cy + y);
-          else this.ctx.lineTo(cx + x, cy + y);
+          for (let row = 0; row < 2; row++) {
+            const currentY = row === 0 ? y1 : y2;
+            for (let i = 0; i < 6; i++) {
+              const itemX = startX + i * 95;
+              const isSquare = (i + row) % 2 === 0;
+
+              if (isSquare) {
+                this.ctx.strokeStyle = '#b45309';
+                this.ctx.fillStyle = 'rgba(245, 158, 11, 0.18)';
+                this.ctx.strokeRect(itemX, currentY - 30, 60, 60);
+                this.ctx.fillRect(itemX, currentY - 30, 60, 60);
+              } else {
+                this.ctx.strokeStyle = '#2563eb';
+                this.ctx.fillStyle = 'rgba(37, 99, 235, 0.18)';
+                this.ctx.beginPath();
+                this.ctx.arc(itemX + 30, currentY, 30, 0, Math.PI * 2);
+                this.ctx.fill();
+                this.ctx.stroke();
+              }
+            }
+          }
+
+          this.ctx.fillStyle = '#6b4226';
+          this.ctx.font = 'bold 14px sans-serif';
+          this.ctx.textAlign = 'center';
+          this.ctx.fillText('نموذج تكرار متناوب بالتوالي: [مربع] ➔ [دائرة] ➔ [مربع] ➔ [دائرة]', cx, cy + 125);
+          break;
         }
-        this.ctx.stroke();
-        break;
 
-      case 8: // 3D Sphere & Shadow
-        // Cast shadow
-        this.ctx.fillStyle = 'rgba(15, 23, 42, 0.4)';
-        this.ctx.beginPath();
-        this.ctx.ellipse(cx + 25, cy + 60, 60, 15, 0, 0, Math.PI * 2);
-        this.ctx.fill();
-        // Sphere outline
-        this.ctx.strokeStyle = '#0369a1';
-        this.ctx.fillStyle = 'rgba(56, 189, 248, 0.2)';
-        this.ctx.beginPath();
-        this.ctx.arc(cx, cy, 55, 0, Math.PI * 2);
-        this.ctx.fill();
-        this.ctx.stroke();
-        break;
+        case 4: { // Lesson 4: Align 4 text blocks horizontally in parallel
+          this.showAlignGuides.set(true);
+          const texts = [
+            '1. التوازن والاستقرار البصري في التكوين الفني',
+            '2. المحاذاة الدقيقة وتناسق الخطوط والعناصر التشكيلية',
+            '3. الوحدة والترابط بين كافة أجزاء العمل الفني',
+            '4. التباين وتأكيد مركز السيادة وعنصر الجذب'
+          ];
+          const yOffsets = [cy - 120, cy - 40, cy + 40, cy + 120];
 
-      case 9: // Secondary colors blocks
-        this.ctx.fillStyle = 'rgba(16, 185, 129, 0.3)';
-        this.ctx.fillRect(cx - 100, cy - 50, 65, 100);
-        this.ctx.fillStyle = 'rgba(249, 115, 22, 0.3)';
-        this.ctx.fillRect(cx - 30, cy - 50, 65, 48);
-        this.ctx.fillStyle = 'rgba(139, 92, 246, 0.3)';
-        this.ctx.fillRect(cx - 30, cy + 2, 65, 48);
-        break;
+          this.ctx.setLineDash([4, 4]);
+          this.ctx.font = 'bold 14px sans-serif';
+          this.ctx.textAlign = 'right';
 
-      case 10: // Full creative stencil
-        this.ctx.strokeStyle = '#ec4899';
-        this.ctx.beginPath();
-        this.ctx.arc(cx - 45, cy - 20, 40, 0, Math.PI * 2);
-        this.ctx.stroke();
-        this.ctx.strokeStyle = '#6366f1';
-        this.ctx.strokeRect(cx, cy - 40, 70, 70);
-        this.ctx.strokeStyle = '#10b981';
-        this.ctx.beginPath();
-        this.ctx.moveTo(cx + 80, cy - 30);
-        this.ctx.lineTo(cx + 120, cy + 50);
-        this.ctx.lineTo(cx + 40, cy + 50);
-        this.ctx.closePath();
-        this.ctx.stroke();
-        break;
+          texts.forEach((txt, idx) => {
+            const lineY = yOffsets[idx];
+            // Background guide strip
+            this.ctx.strokeStyle = '#0284c7';
+            this.ctx.strokeRect(cx - 240, lineY - 22, 480, 44);
+            this.ctx.fillStyle = 'rgba(2, 132, 199, 0.08)';
+            this.ctx.fillRect(cx - 240, lineY - 22, 480, 44);
 
-      default:
-        this.ctx.strokeStyle = '#3498db';
-        this.ctx.strokeRect(cx - 120, cy - 90, 240, 180);
-        break;
+            // Sample instructional text
+            this.ctx.fillStyle = '#0f172a';
+            this.ctx.fillText(txt, cx + 220, lineY + 6);
+          });
+          this.ctx.setLineDash([]);
+          break;
+        }
+
+        case 5: { // Lesson 5: Poster recolor
+          this.loadPosterImage(active.posterImage || 'assets/performance-tasks/lesson-5-poster.png');
+          break;
+        }
+
+        case 6: { // Lesson 6: Digital dot drawing stippling guide
+          this.setTool('dots');
+          this.ctx.strokeStyle = '#9ca3af';
+          this.ctx.fillStyle = '#6b7280';
+
+          // Decorative amphora / vase contour with dots
+          const pts: [number, number][] = [];
+          // Neck
+          pts.push([cx - 40, cy - 140], [cx + 40, cy - 140]);
+          pts.push([cx - 30, cy - 90], [cx + 30, cy - 90]);
+          // Body
+          pts.push([cx - 80, cy - 30], [cx + 80, cy - 30]);
+          pts.push([cx - 100, cy + 30], [cx + 100, cy + 30]);
+          pts.push([cx - 70, cy + 90], [cx + 70, cy + 90]);
+          pts.push([cx - 35, cy + 130], [cx + 35, cy + 130]);
+          // Base
+          pts.push([cx - 50, cy + 145], [cx + 50, cy + 145]);
+
+          // Draw guide dots
+          pts.forEach(([x, y]) => {
+            this.ctx.beginPath();
+            this.ctx.arc(x, y, 4, 0, Math.PI * 2);
+            this.ctx.fill();
+          });
+
+          // Draw dashed contour connecting them for guidance
+          this.ctx.setLineDash([5, 5]);
+          this.ctx.strokeStyle = 'rgba(107, 114, 128, 0.4)';
+          this.ctx.beginPath();
+          // Left profile
+          this.ctx.moveTo(cx - 40, cy - 140);
+          this.ctx.bezierCurveTo(cx - 20, cy - 90, cx - 120, cy, cx - 70, cy + 90);
+          this.ctx.lineTo(cx - 35, cy + 130);
+          this.ctx.lineTo(cx - 50, cy + 145);
+          this.ctx.stroke();
+
+          // Right profile
+          this.ctx.beginPath();
+          this.ctx.moveTo(cx + 40, cy - 140);
+          this.ctx.bezierCurveTo(cx + 20, cy - 90, cx + 120, cy, cx + 70, cy + 90);
+          this.ctx.lineTo(cx + 35, cy + 130);
+          this.ctx.lineTo(cx + 50, cy + 145);
+          this.ctx.stroke();
+          this.ctx.setLineDash([]);
+
+          this.ctx.fillStyle = '#6b4226';
+          this.ctx.font = 'bold 13px sans-serif';
+          this.ctx.textAlign = 'center';
+          this.ctx.fillText('مسار الشكل الزخرفي (تتبع النقاط بأداة الرسم بالنقاط Dots)', cx, cy + 175);
+          break;
+        }
+
+        default:
+          this.ctx.strokeStyle = '#3498db';
+          this.ctx.strokeRect(cx - 120, cy - 90, 240, 180);
+          break;
+      }
+    } else {
+      // General Performance Test Tasks 1-10
+      switch (active.id) {
+        case 1: // Stippling dots sample
+          this.ctx.strokeStyle = '#6b4226';
+          this.ctx.fillStyle = '#d97706';
+          this.ctx.beginPath();
+          this.ctx.arc(cx, cy, 90, 0, Math.PI * 2);
+          this.ctx.setLineDash([4, 6]);
+          this.ctx.stroke();
+          this.ctx.setLineDash([]);
+          for (let i = 0; i < 40; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const rad = Math.random() * 85;
+            const r = Math.random() * 6 + 2;
+            this.ctx.fillStyle = i % 3 === 0 ? '#d97706' : (i % 3 === 1 ? '#059669' : '#6b4226');
+            this.ctx.beginPath();
+            this.ctx.arc(cx + Math.cos(angle) * rad, cy + Math.sin(angle) * rad, r, 0, Math.PI * 2);
+            this.ctx.fill();
+          }
+          break;
+
+        case 2: // Triangle, square, circle
+          this.ctx.strokeStyle = '#1d4ed8';
+          this.ctx.fillStyle = 'rgba(59, 130, 246, 0.15)';
+          this.ctx.fillRect(cx - 100, cy - 70, 90, 90);
+          this.ctx.strokeRect(cx - 100, cy - 70, 90, 90);
+          this.ctx.strokeStyle = '#b91c1c';
+          this.ctx.fillStyle = 'rgba(239, 68, 68, 0.15)';
+          this.ctx.beginPath();
+          this.ctx.arc(cx + 45, cy, 50, 0, Math.PI * 2);
+          this.ctx.fill();
+          this.ctx.stroke();
+          this.ctx.strokeStyle = '#d97706';
+          this.ctx.fillStyle = 'rgba(245, 158, 11, 0.15)';
+          this.ctx.beginPath();
+          this.ctx.moveTo(cx, cy - 80);
+          this.ctx.lineTo(cx - 60, cy + 50);
+          this.ctx.lineTo(cx + 60, cy + 50);
+          this.ctx.closePath();
+          this.ctx.fill();
+          this.ctx.stroke();
+          break;
+
+        case 3: // Organic blobs
+          this.ctx.strokeStyle = '#047857';
+          this.ctx.fillStyle = 'rgba(16, 185, 129, 0.15)';
+          this.ctx.beginPath();
+          this.ctx.moveTo(cx - 90, cy - 50);
+          this.ctx.bezierCurveTo(cx - 30, cy - 110, cx + 90, cy - 70, cx + 70, cy + 30);
+          this.ctx.bezierCurveTo(cx + 50, cy + 100, cx - 70, cy + 110, cx - 90, cy - 50);
+          this.ctx.fill();
+          this.ctx.stroke();
+          break;
+
+        case 4: // Islamic 8-star motif
+          this.ctx.strokeStyle = '#b45309';
+          this.ctx.fillStyle = 'rgba(245, 158, 11, 0.15)';
+          this.ctx.beginPath();
+          for (let i = 0; i < 8; i++) {
+            const a = (i * Math.PI) / 4;
+            const r = i % 2 === 0 ? 80 : 40;
+            const x = cx + r * Math.cos(a);
+            const y = cy + r * Math.sin(a);
+            if (i === 0) this.ctx.moveTo(x, y);
+            else this.ctx.lineTo(x, y);
+          }
+          this.ctx.closePath();
+          this.ctx.fill();
+          this.ctx.stroke();
+          break;
+
+        case 5: // Hatching texture lines
+          this.ctx.strokeStyle = '#44403c';
+          for (let i = -70; i <= 70; i += 14) {
+            this.ctx.beginPath();
+            this.ctx.moveTo(cx + i, cy - 70);
+            this.ctx.lineTo(cx + i + 45, cy + 70);
+            this.ctx.stroke();
+          }
+          break;
+
+        case 6: // Warm-cool gradient blocks
+          this.ctx.fillStyle = 'rgba(239, 68, 68, 0.2)';
+          this.ctx.fillRect(cx - 120, cy - 60, 60, 120);
+          this.ctx.fillStyle = 'rgba(245, 158, 11, 0.2)';
+          this.ctx.fillRect(cx - 60, cy - 60, 60, 120);
+          this.ctx.fillStyle = 'rgba(16, 185, 129, 0.2)';
+          this.ctx.fillRect(cx, cy - 60, 60, 120);
+          this.ctx.fillStyle = 'rgba(59, 130, 246, 0.2)';
+          this.ctx.fillRect(cx + 60, cy - 60, 60, 120);
+          this.ctx.strokeStyle = '#ffffff';
+          this.ctx.strokeRect(cx - 120, cy - 60, 240, 120);
+          break;
+
+        case 7: // Sine wave & parallel lines
+          this.ctx.strokeStyle = '#0284c7';
+          this.ctx.beginPath();
+          for (let x = -140; x <= 140; x += 5) {
+            const y = Math.sin(x / 20) * 35;
+            if (x === -140) this.ctx.moveTo(cx + x, cy + y);
+            else this.ctx.lineTo(cx + x, cy + y);
+          }
+          this.ctx.stroke();
+          break;
+
+        case 8: // 3D Sphere & Shadow
+          this.ctx.fillStyle = 'rgba(15, 23, 42, 0.4)';
+          this.ctx.beginPath();
+          this.ctx.ellipse(cx + 25, cy + 60, 60, 15, 0, 0, Math.PI * 2);
+          this.ctx.fill();
+          this.ctx.strokeStyle = '#0369a1';
+          this.ctx.fillStyle = 'rgba(56, 189, 248, 0.2)';
+          this.ctx.beginPath();
+          this.ctx.arc(cx, cy, 55, 0, Math.PI * 2);
+          this.ctx.fill();
+          this.ctx.stroke();
+          break;
+
+        case 9: // Secondary colors blocks
+          this.ctx.fillStyle = 'rgba(16, 185, 129, 0.3)';
+          this.ctx.fillRect(cx - 100, cy - 50, 65, 100);
+          this.ctx.fillStyle = 'rgba(249, 115, 22, 0.3)';
+          this.ctx.fillRect(cx - 30, cy - 50, 65, 48);
+          this.ctx.fillStyle = 'rgba(139, 92, 246, 0.3)';
+          this.ctx.fillRect(cx - 30, cy + 2, 65, 48);
+          break;
+
+        case 10: // Full creative stencil
+          this.ctx.strokeStyle = '#ec4899';
+          this.ctx.beginPath();
+          this.ctx.arc(cx - 45, cy - 20, 40, 0, Math.PI * 2);
+          this.ctx.stroke();
+          this.ctx.strokeStyle = '#6366f1';
+          this.ctx.strokeRect(cx, cy - 40, 70, 70);
+          this.ctx.strokeStyle = '#10b981';
+          this.ctx.beginPath();
+          this.ctx.moveTo(cx + 80, cy - 30);
+          this.ctx.lineTo(cx + 120, cy + 50);
+          this.ctx.lineTo(cx + 40, cy + 50);
+          this.ctx.closePath();
+          this.ctx.stroke();
+          break;
+
+        default:
+          this.ctx.strokeStyle = '#3498db';
+          this.ctx.strokeRect(cx - 120, cy - 90, 240, 180);
+          break;
+      }
     }
 
     this.ctx.restore();
@@ -1073,14 +1452,14 @@ export class LabComponent implements AfterViewInit, OnInit, OnDestroy {
     if (event.key === 'Escape') this.stopDrawing();
 
     const keyMap: { [key: string]: Tool } = {
-      'p': 'pen', 'e': 'eraser', 'f': 'fill', 't': 'text', 's': 'spray', 'i': 'picker'
+      'p': 'pen', 'e': 'eraser', 'f': 'fill', 't': 'text', 's': 'spray', 'd': 'dots', 'i': 'picker'
     };
     if (keyMap[event.key.toLowerCase()]) this.setTool(keyMap[event.key.toLowerCase()]);
   }
 
   ngAfterViewInit() {
     this.initCanvas();
-    if (this.perfService.activeTask()) {
+    if (this.currentLabTask()) {
       setTimeout(() => {
         this.drawGuideOnCanvas(false);
       }, 150);
@@ -1138,6 +1517,13 @@ export class LabComponent implements AfterViewInit, OnInit, OnDestroy {
 
     this.snapshot = this.ctx.getImageData(0, 0, this.canvasRef.nativeElement.width, this.canvasRef.nativeElement.height);
 
+    if (this.activeTool() === 'dots') {
+      this.drawDot(this.lastX, this.lastY);
+      this.lastDotX = this.lastX;
+      this.lastDotY = this.lastY;
+      return;
+    }
+
     if (this.activeTool() === 'fill') {
       this.floodFill(Math.floor(this.lastX), Math.floor(this.lastY), this.fillColor);
       this.saveState();
@@ -1176,6 +1562,17 @@ export class LabComponent implements AfterViewInit, OnInit, OnDestroy {
     const currentX = e.clientX - rect.left;
     const currentY = e.clientY - rect.top;
 
+    if (this.activeTool() === 'dots') {
+      const dist = Math.hypot(currentX - this.lastDotX, currentY - this.lastDotY);
+      const minSpacing = Math.max(8, this.strokeSize * 1.5);
+      if (dist >= minSpacing) {
+        this.drawDot(currentX, currentY);
+        this.lastDotX = currentX;
+        this.lastDotY = currentY;
+      }
+      return;
+    }
+
     if (['pen', 'eraser'].includes(this.activeTool())) {
       this.ctx.lineTo(currentX, currentY);
       this.ctx.stroke();
@@ -1195,6 +1592,14 @@ export class LabComponent implements AfterViewInit, OnInit, OnDestroy {
     this.isDrawing = false;
     if (this.sprayInterval) clearInterval(this.sprayInterval);
     this.saveState();
+  }
+
+  private drawDot(x: number, y: number) {
+    this.ctx.beginPath();
+    const r = Math.max(2, this.strokeSize / 2);
+    this.ctx.arc(x, y, r, 0, Math.PI * 2);
+    this.ctx.fillStyle = this.fillColor;
+    this.ctx.fill();
   }
 
   private drawSpray(x: number, y: number) {
@@ -1392,8 +1797,11 @@ export class LabComponent implements AfterViewInit, OnInit, OnDestroy {
 
     this.ctx.putImageData(imgData, 0, 0);
 
+    const tolerance = 38;
     function matchStartColor(pos: number) {
-      return data[pos] === startR && data[pos + 1] === startG && data[pos + 2] === startB;
+      return Math.abs(data[pos] - startR) <= tolerance &&
+             Math.abs(data[pos + 1] - startG) <= tolerance &&
+             Math.abs(data[pos + 2] - startB) <= tolerance;
     }
 
     function colorPixel(pos: number) {

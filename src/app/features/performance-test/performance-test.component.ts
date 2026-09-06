@@ -5,6 +5,7 @@ import { Router, RouterLink } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { ButtonSoundService } from '../../core/services/button-sound.service';
 import { PerformanceTestService, PerformanceTask } from '../../core/services/performance-test.service';
+import { LessonPracticalService } from '../../core/services/lesson-practical.service';
 
 @Component({
   selector: 'app-performance-test',
@@ -303,6 +304,7 @@ export class PerformanceTestComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly sanitizer = inject(DomSanitizer);
   readonly perfService = inject(PerformanceTestService);
+  readonly lessonPracticalService = inject(LessonPracticalService);
 
   currentPage = signal<number>(0);
   itemsPerPage = 5;
@@ -340,6 +342,7 @@ export class PerformanceTestComponent implements OnInit {
   }
 
   openTaskInLab(taskId: number): void {
+    this.lessonPracticalService.setActiveTask(null);
     if (this.perfService.setActiveTask(taskId)) {
       this.router.navigate(['/lab']);
     }
